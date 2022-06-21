@@ -1,3 +1,5 @@
+//vcc = 5v, gnd = gnd, scl=A5, sda = A4
+
 #include <mpu9250.h>
 #include <Wire.h>
 
