@@ -1,7 +1,15 @@
- #include "MPU9250.h"
+#include "MPU9250.h"
+#include "Fusion.h"
+#include <stdbool.h>
+#include <stdio.h>
+#define SAMPLE_PERIOD (0.01f) // replace this with actual sample period
+
     #define AHRS true         // Set to false for basic data read
     #define SerialDebug true  // Set to true to get Serial output for debugging
     MPU9250 myIMU;
+
+    FusionAhrs ahrs;
+    
 
 
 void setup() 
@@ -86,6 +94,8 @@ void setup()
 	  while(1) ;
 	  // Loop forever if communication doesn't happen
   }
+
+  FusionAhrsInitialise(&ahrs);
 }
 
 void loop() 
@@ -120,23 +130,17 @@ void loop()
   myIMU.mz = (float)myIMU.magCount[2] * myIMU.mRes
                  * myIMU.factoryMagCalibration[2] - myIMU.magBias[2];
 
-  Serial.print(myIMU.ax);
+  const FusionVector accelerometer = {myIMU.ax, myIMU.ay, myIMU.az}; // replace this with actual gyroscope data in degrees/s
+  const FusionVector gyroscope = {myIMU.gx, myIMU.gy, myIMU.gz}; // replace this with actual accelerometer data in g
+
+  FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, SAMPLE_PERIOD);
+  const FusionEuler euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
+
+  Serial.print(euler.angle.roll);
   Serial.print("\t");
-  Serial.print(myIMU.ay);
+  Serial.print(euler.angle.pitch);
   Serial.print("\t");
-  Serial.print(myIMU.az);
-  Serial.print("\t");
-  Serial.print(myIMU.gx);
-  Serial.print("\t");
-  Serial.print(myIMU.gy);
-  Serial.print("\t");
-  Serial.print(myIMU.gz); 
-  Serial.print("\t");
-  Serial.print(myIMU.mx);
-  Serial.print("\t");
-  Serial.print(myIMU.my);
-  Serial.print("\t");
-  Serial.println(myIMU.mz);
+  Serial.println(euler.angle.yaw);
 
 
   // Must be called before updating quaternions!
