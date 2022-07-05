@@ -1,3 +1,14 @@
+/* Madgwick 알고리즘과 IMU9250 을 이용한 AHRS */
+
+/* 핀 레이아웃
+ * Arduino - IMU9250  
+      5V - VCC  
+      GND - GND  
+      SCL - A5  
+      SDA - A4
+*/
+
+
 #include "MPU9250.h"
 #include "Fusion.h"
 #include <stdbool.h>
