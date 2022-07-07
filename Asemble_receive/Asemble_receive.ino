@@ -34,7 +34,6 @@ void loop()
   if(inString.length()>0)
   {
     Serial.println(inString); //문자열 출력
-    //여기서 inString 이용해서 문자열에서 필요 데이터 출력->숫자값으로 변환 필요
   }
 
 //전송부분
