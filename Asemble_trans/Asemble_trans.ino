@@ -20,14 +20,16 @@
   출력결과
 
                           각       각속도       가속도
-  주기  온도  기압  고도  X  Y  Z    X  Y  Z    X  Y  Z   위도  경도
+  주기  온도  기압  고도  -X  Y  Z-    X  Y  Z    X  Y  Z   위도  경도
   */
 
-
+//bmp id 0x58
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
+
+
 #include <SoftwareSerial.h>
 #include <TinyGPS.h>
 
@@ -41,6 +43,7 @@
     #define SerialDebug true
     MPU9250 myIMU;
     FusionAhrs ahrs;
+#define MPU9250_I2C_ADDRESS 0x68
 
 //bmp
 #define SCL 8
@@ -49,8 +52,11 @@
 #define SDO 11
 
 Adafruit_BMP280 bmp(CSB, SDA, SDO, SCL);
+
+//lora
 SoftwareSerial lora(2,3);
 
+//time
 int t, dt=0;
 
 //gps
@@ -67,9 +73,16 @@ void setup() {
   Serial.println("AT+ADDRESS = 70"); //로라 주소 지정
   Serial.println("AT+NETWORKID = 70"); //네트워크 아이디
   Serial.println("lora setup end");*/
-  
+  //bmp
+  if (!bmp.begin()) {
+    Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
+    while (1);
+  }
+  Serial.println("bmp ok");
+
   //gps
   gpsSerial.begin(9600);
+    Serial.println("gps ok");
 
 //gyro
   Wire.begin();
@@ -86,7 +99,9 @@ void setup() {
     myIMU.getGres();
     myIMU.getMres();
     myIMU.magCalMPU9250(myIMU.magBias, myIMU.magScale);
+    //FusionAhrsInitialise(&ahrs);
   }
+    Serial.println("gyro ok");
     
 //통신 셋업
  /* lora.println(F("                     각       각속도       가속도"));
@@ -99,10 +114,11 @@ void setup() {
 void loop() {
   t = millis();
 
- //bmp
-  float tem = bmp.readTemperature();//온도
-  float pa = bmp.readPressure(); //압력
-  float high = bmp.readAltitude(1006); //고도
+//bmp
+
+   float tem = bmp.readTemperature();//온도
+   float pa = bmp.readPressure(); //압력
+   float high = bmp.readAltitude(1006); //고도 */
   
 //gps
   while(gpsSerial.available()){ 
@@ -136,10 +152,10 @@ myIMU.readAccelData(myIMU.accelCount);
 
 
 //전송코드
- String potval = String(dt)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
-                  +String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
-                  +' '+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+' '+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
-                  +' '+String(lat)+' '+String(lon);//전송내용 문자열로 변환
+ String potval = String(dt)+' '+String(tem)+' '+String(pa)+' '+String(high)+"  "
+                  /*+String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
+                  +"  "*/+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+"  "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
+                  +"  "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
  /*  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
 
   String inString;//받은 문자열
