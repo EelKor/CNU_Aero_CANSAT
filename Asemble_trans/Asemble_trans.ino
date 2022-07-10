@@ -52,12 +52,18 @@
 #define SDO 11
 
 Adafruit_BMP280 bmp(CSB, SDA, SDO, SCL);
+float tem ;//온도
+float pa; //압력
+float high ; //고도
+float setHigh;
 
 //lora
-SoftwareSerial lora(2,3);
+//SoftwareSerial lora(2,3);
 
-//time
-int t, dt=0;
+//time & fall speed
+int t, dt=0, dt1 = 0, dt2 = 0;
+float dH=0, dH1=0, dH2 = 0;
+float FS = 0, FS1 = 0, FS2 = 0;
 
 //gps
 long lat,lon;
@@ -74,11 +80,12 @@ void setup() {
   Serial.println("AT+NETWORKID = 70"); //네트워크 아이디
   Serial.println("lora setup end");*/
   //bmp
-  if (!bmp.begin()) {
+ if (!bmp.begin()) {
     Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
     while (1);
-  }
+  } // */
   Serial.println("bmp ok");
+  setHigh =  bmp.readAltitude(1006);
 
   //gps
   gpsSerial.begin(9600);
@@ -116,9 +123,9 @@ void loop() {
 
 //bmp
 
-   float tem = bmp.readTemperature();//온도
-   float pa = bmp.readPressure(); //압력
-   float high = bmp.readAltitude(1006); //고도 */
+  tem = bmp.readTemperature();//온도
+  pa = bmp.readPressure(); //압력
+  high = bmp.readAltitude(1006) - setHigh; //고도 */
   
 //gps
   while(gpsSerial.available()){ 
@@ -150,12 +157,14 @@ myIMU.readAccelData(myIMU.accelCount);
   FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, SAMPLE_PERIOD);
   const FusionEuler euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
 
+//평균 낙하속도
+ float aveFS = (FS+FS1+FS2)/3;
 
 //전송코드
- String potval = String(dt)+' '+String(tem)+' '+String(pa)+' '+String(high)+"  "
+ String potval = /*String(dt)+' '+String(dt1)+' '+*/String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
                   /*+String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
-                  +"  "*/+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+"  "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
-                  +"  "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
+                  +"    "*/+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+"    "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
+                  +"    "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
  /*  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
 
   String inString;//받은 문자열
@@ -172,5 +181,26 @@ myIMU.readAccelData(myIMU.accelCount);
     Serial.println(inString); //문자열 출력
   }*/
   Serial.println(potval);
-  dt = millis()-t;
+ 
+  
+  //time & fall speed
+  dt = dt1;
+  dt1 = dt2;
+  dt2 = millis()-t;
+
+  dH = dH1;
+  dH1 = dH2;
+  dH2 = high - (bmp.readAltitude(1006) - setHigh);
+
+  FS = FS1;
+  FS1 = FS2;
+  FS2 = dH2/dt2;
+}
+
+//모듈로 낙하산 전개 코드
+void unfold (){
+bool unfoldHigh (high > 200);
+if (unfoldHigh < 200){
+
+ }
 }
