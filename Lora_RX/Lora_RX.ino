@@ -23,12 +23,12 @@ void loop()
   {
     if(lora.available())
     {
-      inString += String(char(lora.read()));
+      inString = String(lora.readStringUntil('\n'));
     }
   }
 
   if(inString.length() > 0)
   {
-    Serial.print(inString);
+    Serial.println(inString);
   }
 }

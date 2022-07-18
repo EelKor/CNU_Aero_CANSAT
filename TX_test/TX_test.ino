@@ -3,22 +3,28 @@
 SoftwareSerial lora(2,3);
 
 void setup() {
-  Serial.begin(9600);
-  lora.begin(9600);
-  Serial.println("lora setup");
-  Serial.println("AT+IPR = 9600"); //로라 속도
-  Serial.println("AT+ADDRESS = 70"); //로라 주소 지정
-  Serial.println("AT+NETWORKID = 7"); //네트워크 아이디
-  Serial.println("lora setup end");
+    Serial.begin(9600);
+    lora.begin(9600);
+    delay(100);
+    lora.println("AT+PARAMETER=10,7,1,7");
+    delay(100);
+    lora.println("AT+ADDRESS=70");
+    delay(100);
+    lora.println("AT+NETWORKID=7");
+    delay(100);
+   // lora.println("AT+BAND=92000000");
+   // delay(100);
 }
 
 void loop() {
-  String str = "lora ok";
-  String cmd = "AT+SEND=77,1,";
+  String str = "lora_ok";
+  String cmd = "AT+SEND=77,"+String(str.length())+","+str;
 
-  if(lora.available())
+ lora.println(cmd);
+  while(lora.available())
   {
-    lora.println(cmd+str);
+   Serial.write(lora.read());
   }
+  Serial.println(cmd);
 
 }

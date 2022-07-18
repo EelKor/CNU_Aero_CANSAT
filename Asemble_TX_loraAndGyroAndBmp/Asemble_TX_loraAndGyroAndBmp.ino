@@ -82,9 +82,9 @@ float setHigh;
 //SoftwareSerial lora(2,3);
 
 //time & fall speed
-int t, dt=0, dt1 = 0, dt2 = 0;
-float dH=0, dH1=0, dH2 = 0;
-float FS = 0, FS1 = 0, FS2 = 0;
+int t, dt=0;
+float dH=0, prvHigh = 0;
+float FS = 0;
 
 //gps
 long lat,lon;
@@ -105,34 +105,29 @@ void unfold(){
   }
 }
 
-void setup() {
-  Serial.begin(9600);
-  //lora
- /* lora.begin(9600);
-  Serial.println("lora setup");
-  Serial.println("AT+IPR = 9600"); //로라 속도
-  Serial.println("AT+ADDRESS = 70"); //로라 주소 지정
-  Serial.println("AT+NETWORKID = 70"); //네트워크 아이디
-  Serial.println("lora setup end");*/
-  //bmp
- if (!bmp.begin()) {
-    Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
-    while (1);
-  } // */
-  Serial.println("bmp ok");
-  setHigh =  bmp.readAltitude(1006);
 
-  //gps
-  gpsSerial.begin(9600);
-    Serial.println("gps ok");
 
-  //servo
-  servo.attach(7);
-  value = 0;
-  servo.write(value);
-  delay(100);
 
-//gyro
+unsigned long lastTransmission;
+const int interval = 1000;
+SoftwareSerial lora(2,3);  // Lora TX , Lora RX
+
+void setup(){
+      Serial.begin(9600);
+      
+//lora
+    lora.begin(9600);
+    delay(100);
+    lora.println("AT+PARAMETER=10,7,1,7");
+    delay(100);
+    lora.println("AT+ADDRESS=76");
+    delay(100);
+    lora.println("AT+NETWORKID=2");
+    delay(100);
+    //lora.println("AT+BAND=92000000");
+    delay(100);
+    
+  //gyro
  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
         Wire.setClock(400000);
@@ -153,33 +148,35 @@ void setup() {
         packetSize = mpu.dmpGetFIFOPacketSize();
     }
     Serial.println("gyro ok");
-    
-//통신 셋업
- /* lora.println(F("                     각       각속도       가속도"));
-  lora.println(F("주기  온도  기압  고도 X  Y  Z    X  Y  Z    X  Y  Z   위도  경도"));
-  while(lora.available()){
-    Serial.write(lora.read()); //전송
-  }*/
+
+     //bmp
+ if (!bmp.begin()) {
+    Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
+    while (1);
+  } // */
+  Serial.println("bmp ok");
+  setHigh =  bmp.readAltitude(1006);
+
+     //servo
+  servo.attach(7);
+  value = 0;
+  servo.write(value);
+  Serial.println("servo ok");
+  delay(100);
+
 }
 
+void loop()
+{
+    t = millis();
 
-void loop() {
-  t = millis();
-
-//bmp
+    //bmp
 
   tem = bmp.readTemperature();//온도
   pa = bmp.readPressure(); //압력
-  high = bmp.readAltitude(1006) - setHigh; //고도 */
   
-//gps
-  while(gpsSerial.available()){ 
-  if(gps.encode(gpsSerial.read())){
-   gps.get_position(&lat,&lon);
-  }
-  }
 
-//gyro
+    //gyro
 if (!dmpReady) return;
 mpuInterrupt = false;
     mpuIntStatus = mpu.getIntStatus();
@@ -239,44 +236,37 @@ mpuInterrupt = false;
             teapotPacket[11]++; 
         #endif}
 
- 
-//평균 낙하속도
- float aveFS = (FS+FS1+FS2)/3;
 
-//전송코드
- String potval =String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
-                  +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)+' '
-                  +"    "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
- /*  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
+    dt = millis()-t;
+    high = bmp.readAltitude(1006) - setHigh; //고도 */
+    dH =high - prvHigh;
+    FS= dH/dt;
 
-  String inString;//받은 문자열
 
-  lora.println(cmd);
-  while(lora.available()){
-    Serial.write(lora.read());
-    if(lora.available()){
-    inString = String(char(lora.read())); //전송받은 문자열
+    //전송
+  String cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
+                  +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
+                  /*+' '+String(lat)+' '+String(lon)*/;//전송내용 문자열로 변환;
+      lora.println("AT+SEND=77,"+String(cmd.length())+","+cmd);
+      delay(50);
+
+//time & fall speed
+  prvHigh = bmp.readAltitude(1006) - setHigh;
+
+   String inString;
+
+  while(lora.available())
+  {
+    if(lora.available())
+    {
+      inString = String(lora.readStringUntil('\n'));
     }
   }
-   if(inString.length()>0)
+
+  if(inString.length() > 0)
   {
-    Serial.println(inString); //문자열 출력
-  }*/
-  Serial.println(potval);
- 
-  
-  //time & fall speed
-  dt = dt1;
-  dt1 = dt2;
-  dt2 = millis()-t;
-
-  dH = dH1;
-  dH1 = dH2;
-  dH2 = high - (bmp.readAltitude(1006) - setHigh);
-
-  FS = FS1;
-  FS1 = FS2;
-  FS2 = dH2/dt2;
+    Serial.println(inString);
+  }
   
 }
 }
