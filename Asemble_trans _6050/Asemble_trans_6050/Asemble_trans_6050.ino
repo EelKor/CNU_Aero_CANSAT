@@ -25,7 +25,7 @@
   출력결과
 
                                      각        각속도       가속도
-  주기  낙하속도 온도  기압  고도  --YAW  Pitch  ROLL--    X  Y  Z    X  Y  Z   위도  경도
+  주기  낙하속도 온도  기압  고도  --YAW  Pitch(y)  ROLL(x)--    X  Y  Z    X  Y  Z   위도  경도
   */
 
 //bmp id 0x58
