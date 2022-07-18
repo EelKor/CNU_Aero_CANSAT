@@ -3,7 +3,7 @@
 SoftwareSerial lora(2,3);
 
 void setup(){
-    Serial.begin(115200);
+    Serial.begin(9600);
     lora.begin(9600);
     delay(100);
     lora.println("AT+PARAMETER=10,7,1,7");

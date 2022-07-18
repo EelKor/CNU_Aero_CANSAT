@@ -10,13 +10,13 @@
   vcc 5V
   tx  5   rx  6
 
+  serial line 3
+ 
 
   */
 
 #include <SoftwareSerial.h>
 
-//아두이노 시리얼 통신
-SoftwareSerial mySerial(A2,A3);
 
 //bmp id 0x58
 #include <SPI.h>
@@ -49,7 +49,7 @@ float FS = 0, FS1 = 0, FS2 = 0;
 
 void setup() {
 Serial.begin(9600);
-mySerial.begin(9600);
+
 
 //bmp
  if (!bmp.begin()) {
@@ -57,7 +57,8 @@ mySerial.begin(9600);
     while (1);
   } // */
   Serial.println("bmp ok");
-  setHigh =  bmp.readAltitude(1006);
+  setHigh =  bmp.readAltitude(1000);
+  Serial.println(setHigh);
 
   //gps
   gpsSerial.begin(9600);
@@ -73,7 +74,7 @@ void loop() {
 
   tem = bmp.readTemperature();//온도
   pa = bmp.readPressure(); //압력
-  high = bmp.readAltitude(1006) - setHigh; //고도 */
+  high = bmp.readAltitude(1000) - setHigh; //고도 */
   
 //gps
   while(gpsSerial.available()){ 
@@ -85,21 +86,11 @@ void loop() {
   
 //평균 낙하속도
  float aveFS = (FS+FS1+FS2)/3;
- String sensorStr;
+
 String sensorData = String(dt2)+' '+String(aveFS)+"    "+
                     String(tem)+' '+String(pa)+' '+String(high)+"    "+
                     String(lat)+' '+String(lon);
-mySerial.println(sensorData);
-  while(mySerial.available()){
-    if(mySerial.available()){
-    sensorStr = String(mySerial.readString()); //전송받은 문자열
-    }
-  }
-   if(sensorStr.length()>0)
-  {
-    Serial.println(sensorStr); //문자열 출력
-  }
-Serial.println(sensorData);
+ Serial.println(sensorData);
 
 
  //time & fall speed
@@ -109,7 +100,7 @@ Serial.println(sensorData);
 
   dH = dH1;
   dH1 = dH2;
-  dH2 = high - (bmp.readAltitude(1006) - setHigh);
+  dH2 = high - (bmp.readAltitude(1000) - setHigh);
 
   FS = FS1;
   FS1 = FS2;

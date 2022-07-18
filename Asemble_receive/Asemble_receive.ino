@@ -9,36 +9,40 @@
  
 SoftwareSerial lora(2,3);
  
-int val = 0;
- 
 void setup()
 {
   Serial.begin(9600);
   lora.begin(9600);
-  Serial.println("AT+IPR = 9600");
-  Serial.println("AT+ADDRESS = 70");
-  Serial.println("AT+NETWORKID = 70");
+  Serial.println("lora setup");
+  lora.println("AT+PARAMETER=10,7,1,7");
+  delay(100);
+  lora.println("AT+IPR = 9600"); //로라 속도
+  delay(100);
+  lora.println("AT+ADDRESS = 71"); //로라 주소 지정
+  delay(100);
+  lora.println("AT+NETWORKID = 2"); //네트워크 아이디
+  delay(100);
+  Serial.println("lora setup end");
+  delay(100);
  
 }
  
 void loop()
 {
-  //수신부분
   String inString;
-  while (lora.available())
+
+  while(lora.available())
   {
-    if(lora.available()){
-    inString = String(char(lora.read())); //전송받은 문자열
+    if(lora.available())
+    {
+       inString += String(char(lora.read()));
     }
   }
-  if(inString.length()>0)
+
+  if(inString.length() > 0)
   {
-    Serial.println(inString); //문자열 출력
+    Serial.print(inString);
+    inString.remove(0);
   }
 
-//전송부분
-   lora.println("낙하산 전개 코드");
-   while(lora.available()){
-    Serial.write(lora.read()); //전송
-  }
 }

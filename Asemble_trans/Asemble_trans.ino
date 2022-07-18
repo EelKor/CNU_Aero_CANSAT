@@ -19,8 +19,8 @@
   
   출력결과
 
-                          각       각속도       가속도
-  주기  온도  기압  고도  -X  Y  Z-    X  Y  Z    X  Y  Z   위도  경도
+                                     각        각속도       가속도
+  주기  낙하속도 온도  기압  고도  --X  Y  Z--    X  Y  Z    X  Y  Z   위도  경도
   */
 
 //bmp id 0x58
@@ -106,7 +106,7 @@ void setup() {
     myIMU.getGres();
     myIMU.getMres();
     myIMU.magCalMPU9250(myIMU.magBias, myIMU.magScale);
-    //FusionAhrsInitialise(&ahrs);
+    FusionAhrsInitialise(&ahrs);
   }
     Serial.println("gyro ok");
     
@@ -135,7 +135,7 @@ void loop() {
   }
 
 //gyro
-myIMU.readAccelData(myIMU.accelCount);
+  myIMU.readAccelData(myIMU.accelCount);
   myIMU.ax = (float)myIMU.accelCount[0] * myIMU.aRes;
   myIMU.ay = (float)myIMU.accelCount[1] * myIMU.aRes;
   myIMU.az = (float)myIMU.accelCount[2] * myIMU.aRes;
@@ -162,8 +162,8 @@ myIMU.readAccelData(myIMU.accelCount);
 
 //전송코드
  String potval = /*String(dt)+' '+String(dt1)+' '+*/String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
-                  /*+String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
-                  +"    "*/+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+"    "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
+                  +String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
+                  +"    "+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+"    "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az)
                   +"    "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
  /*  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
 

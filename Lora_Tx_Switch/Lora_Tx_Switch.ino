@@ -9,7 +9,7 @@ int prev_ignition = 0;
 SoftwareSerial lora(2,3);
 
 void setup(){
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     // Lora 모듈 초기화
     lora.begin(9600);

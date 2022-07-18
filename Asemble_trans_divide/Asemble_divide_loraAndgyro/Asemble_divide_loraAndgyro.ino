@@ -8,15 +8,14 @@
   Lora_trans
   VCC 3.3V 
   tx 2      rx 3 
+
+  serial line 5
   
   주기 낙하속도 온도 기압 고도 위도 경도 각(x y z) 각속도(x y z) 가속도(x y z)
   */
 
 #include <SoftwareSerial.h>
 
-//아두이노 시리얼 통신
-SoftwareSerial mySerial(A2,A3);
-  String sensorData;
 
 //gyro
 #include "MPU9250.h"
@@ -43,9 +42,14 @@ void setup() {
   //lora
   lora.begin(9600);
   Serial.println("lora setup");
-  Serial.println("AT+IPR = 9600"); //로라 속도
-  Serial.println("AT+ADDRESS = 70"); //로라 주소 지정
-  Serial.println("AT+NETWORKID = 70"); //네트워크 아이디
+  lora.println("AT+PARAMETER=10,7,1,7");
+  delay(100);
+  lora.println("AT+IPR = 9600"); //로라 속도
+  delay(100);
+  lora.println("AT+ADDRESS = 70"); //로라 주소 지정
+  delay(100);
+  lora.println("AT+NETWORKID = 2"); //네트워크 아이디
+  delay(100);
   Serial.println("lora setup end");
 
   //gyro
@@ -69,7 +73,7 @@ void setup() {
 }
 
 void loop() {
- t = millis();
+t = millis();
   
  //gyro
   myIMU.readAccelData(myIMU.accelCount);
@@ -95,36 +99,26 @@ void loop() {
   const FusionEuler euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
 
 
-//시리얼 수신
-
-  while(mySerial.available()){
-    if(mySerial.available()){
-    sensorData = String(mySerial.readString()); //전송받은 문자열
-    }
-  }
-
-
-//전송코드
- String potval =String(dt)+' '+String(sensorData) +"    "+ String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
+//라즈베리 전송코드
+ String potval =String(dt)+' '+ String(euler.angle.roll)+' '+String(euler.angle.pitch)+' '+String(euler.angle.yaw)
                   +"    "+String(myIMU.gx)+' '+String(myIMU.gy)+' '+String(myIMU.gz)+
                   "    "+String(myIMU.ax)+' '+String(myIMU.ay)+' '+String(myIMU.az);//전송내용 문자열로 변환
                   
-  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
+  String cmd = "AT+SEND=71,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
 
   String inString;//받은 문자열
 
   lora.println(cmd);
-  while(lora.available()){
-    if(lora.available()){
-    inString = String(char(lora.read())); //전송받은 문자열
-    }
+  
+  while(lora.available()){  
+   // inString += String(char(lora.read())); //전송받은 문자열
+  Serial.write(lora.read());
   }
-   if(inString.length()>0)
+  /* if(inString.length()>0)
   {
     Serial.println(inString); //문자열 출력
-  }
-  Serial.println(potval);
-
+  }*/
+Serial.println(cmd);
 dt = millis()-t;
 }
 
