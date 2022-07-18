@@ -28,9 +28,9 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
-
-
 #include <SoftwareSerial.h>
+
+// GPS
 #include <TinyGPS.h>
 
 //gyro
@@ -45,7 +45,7 @@ MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
 
- bool dmpReady = false;  // set true if DMP init was successful
+bool dmpReady = false;  // set true if DMP init was successful
 uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
 uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
 uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
@@ -78,14 +78,15 @@ float tem ;//온도
 float pa; //압력
 float high ; //고도
 float setHigh;
+float prevHigh;
 
 //lora
 //SoftwareSerial lora(2,3);
 
 //time & fall speed
-int t, dt=0, dt1 = 0, dt2 = 0;
-float dH=0, dH1=0, dH2 = 0;
-float FS = 0, FS1 = 0, FS2 = 0;
+unsigned long dt, startTime;
+float FS;
+
 
 //gps
 long lat,lon;
@@ -93,7 +94,7 @@ SoftwareSerial gpsSerial(5,6);
 TinyGPS gps;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   //lora
  /* lora.begin(9600);
   Serial.println("lora setup");
@@ -145,7 +146,7 @@ void setup() {
 
 
 void loop() {
-  t = millis();
+  startTime = millis();
 
 //bmp
 
@@ -172,7 +173,6 @@ mpuInterrupt = false;
     if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
         // reset so we can continue cleanly
         mpu.resetFIFO();
-        Serial.println(F("FIFO overflow!"));
 
     // otherwise, check for DMP data ready interrupt (this should happen frequently)
     } else if (mpuIntStatus & 0x02) {
@@ -222,26 +222,15 @@ mpuInterrupt = false;
             mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
         #endif
     
-        #ifdef OUTPUT_TEAPOT
-            // display quaternion values in InvenSense Teapot demo format:
-            teapotPacket[2] = fifoBuffer[0];
-            teapotPacket[3] = fifoBuffer[1];
-            teapotPacket[4] = fifoBuffer[4];
-            teapotPacket[5] = fifoBuffer[5];
-            teapotPacket[6] = fifoBuffer[8];
-            teapotPacket[7] = fifoBuffer[9];
-            teapotPacket[8] = fifoBuffer[12];
-            teapotPacket[9] = fifoBuffer[13];
-            Serial.write(teapotPacket, 14);
-            teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
-        #endif}
+        }
 
  
 //평균 낙하속도
- float aveFS = (FS+FS1+FS2)/3;
+dt = millis() - startTime;
+FS = (high - prevHigh) / dt;
 
 //전송코드
- String potval = /*String(dt)+' '+String(dt1)+' '+*/String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
+ String potval = /*String(dt)+' '+String(dt1)+' '+*/String(dt)+' '+String(FS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
                  /* +String(q.w)+' '+String(q.x)+' '+String(q.y)+' '+String(q.z)+' '
                   +String(euler[0] * 180/M_PI)+' '+String(euler[1] * 180/M_PI)+' '+String(euler[2] * 180/M_PI)+' '*/
                   +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)+' '
@@ -265,16 +254,6 @@ mpuInterrupt = false;
  
   
   //time & fall speed
-  dt = dt1;
-  dt1 = dt2;
-  dt2 = millis()-t;
+  prevHigh = high;
 
-  dH = dH1;
-  dH1 = dH2;
-  dH2 = high - (bmp.readAltitude(1006) - setHigh);
-
-  FS = FS1;
-  FS1 = FS2;
-  FS2 = dH2/dt2;
-}
 }
