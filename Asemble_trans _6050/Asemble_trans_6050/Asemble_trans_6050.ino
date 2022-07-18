@@ -1,26 +1,31 @@
 /* bmp280:기압/온도/고도
-  vcc 3.3v  SCL 8
-  SDA 9     SCB 10
-  SDO 11
+  vcc - 3.3v  
+  SCL - 8
+  SDA - 9     
+  SCB - 10
+  SDO - 11
   
   Lora_trans
-  VCC 3.3V 
-  tx 2      rx 3 
+  VCC - 3.3V 
+  tx - 2      
+  rx - 3 
   
   gps -6m 기준
   vcc 5V
   tx  5   rx  6
 
-  mpu9250
-  vcc 5v
-  sda a4    scl a5
+  mpu 6050
+  vcc - 5v
+  sda - a4    
+  scl - a5
+  int - D2
 
   
   
   출력결과
 
                                      각        각속도       가속도
-  주기  낙하속도 온도  기압  고도  --X  Y  Z--    X  Y  Z    X  Y  Z   위도  경도
+  주기  낙하속도 온도  기압  고도  --YAW  Pitch  ROLL--    X  Y  Z    X  Y  Z   위도  경도
   */
 
 //bmp id 0x58
