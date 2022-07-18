@@ -3,7 +3,7 @@
 #define ledPin 13
 unsigned long lastTransmission;
 const int interval = 1000;
-SoftwareSerial lora(2,3);
+SoftwareSerial lora(2,3);  // Lora TX , Lora RX
 
 void setup(){
     Serial.begin(115200);

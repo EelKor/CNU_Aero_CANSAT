@@ -72,13 +72,16 @@ TinyGPS gps;
 
 void setup() {
   Serial.begin(9600);
+  
   //lora
  /* lora.begin(9600);
   Serial.println("lora setup");
   Serial.println("AT+IPR = 9600"); //로라 속도
   Serial.println("AT+ADDRESS = 70"); //로라 주소 지정
   Serial.println("AT+NETWORKID = 70"); //네트워크 아이디
-  Serial.println("lora setup end");*/
+  Serial.println("lora setup end");
+ */
+
   //bmp
  if (!bmp.begin()) {
     Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
