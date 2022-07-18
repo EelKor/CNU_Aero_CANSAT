@@ -11,16 +11,15 @@
   vcc 5V
   tx  5   rx  6
 
-  mpu9250
+  mpu6050
   vcc 5v
   sda a4    scl a5
+  int 13
 
-  
-  
-  출력결과
+  servo
+  pwm 7
 
-                                     각        각속도       가속도
-  주기  낙하속도 온도  기압  고도  --X  Y  Z--    X  Y  Z    X  Y  Z   위도  경도
+  주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
 //bmp id 0x58
@@ -31,6 +30,7 @@
 
 
 #include <SoftwareSerial.h>
+//gps
 #include <TinyGPS.h>
 
 //gyro
@@ -39,31 +39,30 @@
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
-#define INTERRUPT_PIN 2
+#define INTERRUPT_PIN 13
 
 MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
 
- bool dmpReady = false;  // set true if DMP init was successful
-uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
-uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
-uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
-uint16_t fifoCount;     // count of all bytes currently in FIFO
-uint8_t fifoBuffer[64]; // FIFO storage buffer
+ bool dmpReady = false;
+uint8_t mpuIntStatus;
+uint8_t devStatus;
+uint16_t packetSize;
+uint16_t fifoCount;
+uint8_t fifoBuffer[64];
 
-Quaternion q;           // [w, x, y, z]         quaternion container
-VectorInt16 aa;         // [x, y, z]            accel sensor measurements
-VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
-VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
-VectorFloat gravity;    // [x, y, z]            gravity vector
-float euler[3];         // [psi, theta, phi]    Euler angle container
-float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+Quaternion q;
+VectorInt16 aa;
+VectorInt16 aaReal;
+VectorInt16 aaWorld;
+VectorFloat gravity;
+float euler[3];
+float ypr[3]; 
 
-// packet structure for InvenSense teapot demo
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
-volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
+volatile bool mpuInterrupt = false;
 void dmpDataReady() {
     mpuInterrupt = true;}
 
@@ -92,6 +91,20 @@ long lat,lon;
 SoftwareSerial gpsSerial(5,6);
 TinyGPS gps;
 
+//servo
+#include <Servo.h>
+Servo servo;
+int value = 0;
+int unfoldValue = 90;
+String data;
+float unfoldHigh = 300; //낙하산 전개 고도
+
+void unfold(){
+  if (high<= unfoldHigh){
+    servo.write(unfoldValue);
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   //lora
@@ -113,10 +126,16 @@ void setup() {
   gpsSerial.begin(9600);
     Serial.println("gps ok");
 
+  //servo
+  servo.attach(7);
+  value = 0;
+  servo.write(value);
+  delay(100);
+
 //gyro
  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
-        Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
+        Wire.setClock(400000);
     #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
         Fastwire::setup(400, true);sa
     #endif
@@ -165,47 +184,34 @@ if (!dmpReady) return;
 mpuInterrupt = false;
     mpuIntStatus = mpu.getIntStatus();
 
-    // get current FIFO count
     fifoCount = mpu.getFIFOCount();
 
-    // check for overflow (this should never happen unless our code is too inefficient)
     if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
-        // reset so we can continue cleanly
         mpu.resetFIFO();
-        Serial.println(F("FIFO overflow!"));
-
-    // otherwise, check for DMP data ready interrupt (this should happen frequently)
-    } else if (mpuIntStatus & 0x02) {
-        // wait for correct available data length, should be a VERY short wait
+      } 
+    else if (mpuIntStatus & 0x02) {
         while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
 
-        // read a packet from FIFO
         mpu.getFIFOBytes(fifoBuffer, packetSize);
         
-        // track FIFO count here in case there is > 1 packet available
-        // (this lets us immediately read more without waiting for an interrupt)
         fifoCount -= packetSize;
 
         #ifdef OUTPUT_READABLE_QUATERNION
-            // display quaternion values in easy matrix form: w x y z
             mpu.dmpGetQuaternion(&q, fifoBuffer);
         #endif
 
         #ifdef OUTPUT_READABLE_EULER
-            // display Euler angles in degrees
             mpu.dmpGetQuaternion(&q, fifoBuffer);
             mpu.dmpGetEuler(euler, &q);
         #endif
 
         #ifdef OUTPUT_READABLE_YAWPITCHROLL
-            // display Euler angles in degrees
             mpu.dmpGetQuaternion(&q, fifoBuffer);
             mpu.dmpGetGravity(&gravity, &q);
             mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
         #endif
 
         #ifdef OUTPUT_READABLE_REALACCEL
-            // display real acceleration, adjusted to remove gravity
             mpu.dmpGetQuaternion(&q, fifoBuffer);
             mpu.dmpGetAccel(&aa, fifoBuffer);
             mpu.dmpGetGravity(&gravity, &q);
@@ -213,8 +219,6 @@ mpuInterrupt = false;
         #endif
 
         #ifdef OUTPUT_READABLE_WORLDACCEL
-            // display initial world-frame acceleration, adjusted to remove gravity
-            // and rotated based on known orientation from quaternion
             mpu.dmpGetQuaternion(&q, fifoBuffer);
             mpu.dmpGetAccel(&aa, fifoBuffer);
             mpu.dmpGetGravity(&gravity, &q);
@@ -223,7 +227,6 @@ mpuInterrupt = false;
         #endif
     
         #ifdef OUTPUT_TEAPOT
-            // display quaternion values in InvenSense Teapot demo format:
             teapotPacket[2] = fifoBuffer[0];
             teapotPacket[3] = fifoBuffer[1];
             teapotPacket[4] = fifoBuffer[4];
@@ -233,7 +236,7 @@ mpuInterrupt = false;
             teapotPacket[8] = fifoBuffer[12];
             teapotPacket[9] = fifoBuffer[13];
             Serial.write(teapotPacket, 14);
-            teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
+            teapotPacket[11]++; 
         #endif}
 
  
@@ -241,9 +244,7 @@ mpuInterrupt = false;
  float aveFS = (FS+FS1+FS2)/3;
 
 //전송코드
- String potval = /*String(dt)+' '+String(dt1)+' '+*/String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
-                 /* +String(q.w)+' '+String(q.x)+' '+String(q.y)+' '+String(q.z)+' '
-                  +String(euler[0] * 180/M_PI)+' '+String(euler[1] * 180/M_PI)+' '+String(euler[2] * 180/M_PI)+' '*/
+ String potval =String(dt2)+' '+String(aveFS)+"    "+String(tem)+' '+String(pa)+' '+String(high)+"    "
                   +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)+' '
                   +"    "+String(lat)+' '+String(lon);//전송내용 문자열로 변환
  /*  String cmd = "AT+SEND= 70,"+String(potval.length()) +','+ String(potval)+"\r"; //전송코드
@@ -276,5 +277,7 @@ mpuInterrupt = false;
   FS = FS1;
   FS1 = FS2;
   FS2 = dH2/dt2;
+  
 }
 }
+
