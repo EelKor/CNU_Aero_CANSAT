@@ -14,10 +14,13 @@
   mpu6050
   vcc 5v
   sda a4    scl a5
-  int 13
+  int 4
 
   servo
   pwm 7
+
+  dataSerial
+  tx 12    rx 13
 
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
@@ -39,7 +42,7 @@
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
-#define INTERRUPT_PIN 13
+#define INTERRUPT_PIN 4
 
 MPU6050 mpu;
 
@@ -78,11 +81,9 @@ float pa; //압력
 float high ; //고도
 float setHigh;
 
-//lora
-//SoftwareSerial lora(2,3);
 
 //time & fall speed
-int t, dt=0;
+unsigned int t, dt=0;
 float dH=0, prvHigh = 0;
 float FS = 0;
 
@@ -106,26 +107,33 @@ void unfold(){
 }
 
 
-
-
+//lora
 unsigned long lastTransmission;
 const int interval = 1000;
 SoftwareSerial lora(2,3);  // Lora TX , Lora RX
+String cmd;
+
+
+//라즈베리파이 시리얼 통신
+SoftwareSerial dataSerial(12,13);
+void dataTX();
+void dataRX();
+
+
 
 void setup(){
       Serial.begin(9600);
+
+//라즈베리파이 시리얼 통신
+      dataSerial.begin(9600);
       
 //lora
     lora.begin(9600);
     delay(100);
-    lora.println("AT+PARAMETER=10,7,1,7");
-    delay(100);
-    lora.println("AT+ADDRESS=76");
-    delay(100);
-    lora.println("AT+NETWORKID=2");
-    delay(100);
-    //lora.println("AT+BAND=92000000");
-    delay(100);
+    lora.println("AT+PARAMETER=10,7,1,7"); delay(100);
+    lora.println("AT+ADDRESS=76"); delay(100);
+    lora.println("AT+NETWORKID=2"); delay(100);
+    //lora.println("AT+BAND=92000000"); delay(100);
     
   //gyro
  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -237,36 +245,69 @@ mpuInterrupt = false;
         #endif}
 
 
+//time & fall speed
     dt = millis()-t;
     high = bmp.readAltitude(1006) - setHigh; //고도 */
     dH =high - prvHigh;
     FS= dH/dt;
 
+  prvHigh = bmp.readAltitude(1006) - setHigh;
 
-    //전송
-  String cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
-                  +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-                  /*+' '+String(lat)+' '+String(lon)*/;//전송내용 문자열로 변환;
+    //lora 전송
+  cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
+       +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
+       /*+' '+String(lat)+' '+String(lon)*/;//전송내용 문자열로 변환;
       lora.println("AT+SEND=77,"+String(cmd.length())+","+cmd);
       delay(50);
 
-//time & fall speed
-  prvHigh = bmp.readAltitude(1006) - setHigh;
+ //라즈베리 시리얼 통신
+//dataTX();
+dataRX();
 
+ 
+//lora 수신
    String inString;
-
-  while(lora.available())
-  {
-    if(lora.available())
-    {
+  while(lora.available()){
+    if(lora.available()){
+      delay(100);
       inString = String(lora.readStringUntil('\n'));
     }
   }
 
-  if(inString.length() > 0)
-  {
+  if(inString.length() > 0){
     Serial.println(inString);
+
   }
-  
+
+
+  //낙하산 전개
+  unfold();
 }
+}
+
+
+
+
+
+//라즈베리 시리얼
+void dataTX(){
+  if(dataSerial.available()){
+    dataSerial.println(cmd);
+    }
+}
+void dataRX(){
+  String dataString;
+
+  while(dataSerial.available())
+  {
+    if(dataSerial.available())
+    {
+      dataString = String(dataSerial.readStringUntil('\n'));
+    }
+  }
+
+  if(dataString.length() > 0)
+  {
+    Serial.println(dataString);
+  }
 }
