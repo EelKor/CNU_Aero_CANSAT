@@ -9,7 +9,7 @@
   
   gps -6m 기준
   vcc 5V
-  tx  5   rx  6
+  tx  5  rx  6
 
   mpu6050
   vcc 5v
