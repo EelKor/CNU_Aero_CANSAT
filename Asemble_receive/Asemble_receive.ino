@@ -54,6 +54,7 @@ if(Serial.available())
      
        if(cmd.length() > 0){
          lora.println("AT+SEND=76,"+String(cmd.length())+","+cmd);
+         //Serial.println(cmd);
           delay(50);
        }
     }

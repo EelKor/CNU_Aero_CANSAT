@@ -112,7 +112,8 @@ unsigned long lastTransmission;
 const int interval = 1000;
 SoftwareSerial lora(2,3);  // Lora TX , Lora RX
 String cmd;
-
+  unsigned int preTXtime;
+  unsigned int TXtime;
 
 //라즈베리파이 시리얼 통신
 SoftwareSerial dataSerial(12,13);
@@ -251,37 +252,35 @@ mpuInterrupt = false;
     dH =high - prvHigh;
     FS= dH/dt;
 
+
+
   prvHigh = bmp.readAltitude(1006) - setHigh;
+  
+
 
     //lora 전송
+    TXtime = millis();
+    if(TXtime-preTXtime >1000){
   cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
        +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
        /*+' '+String(lat)+' '+String(lon)*/;//전송내용 문자열로 변환;
       lora.println("AT+SEND=77,"+String(cmd.length())+","+cmd);
-      delay(50);
-
- //라즈베리 시리얼 통신
-//dataTX();
-dataRX();
-
- 
-//lora 수신
-   String inString;
-  while(lora.available()){
-    if(lora.available()){
       delay(100);
-      inString = String(lora.readStringUntil('\n'));
+     preTXtime = TXtime;
     }
-  }
-
-  if(inString.length() > 0){
+    
+      
+     //lora 수신
+   String inString;
+    if(lora.available()){
+      inString = String(lora.readStringUntil('\n'));
+      delay(100);
+    }
+  if(inString.length() > 0)
+  {
     Serial.println(inString);
-
   }
 
-
-  //낙하산 전개
-  unfold();
 }
 }
 
