@@ -1,10 +1,3 @@
-//수신부 코드입니다.
-
-/* Lora_trans
-  VCC 3.3V 
-  tx 2      rx 3 */
-
-
 #include <SoftwareSerial.h>
  
 SoftwareSerial lora(2,3);
