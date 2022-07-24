@@ -8,7 +8,7 @@ String cmd;
   unsigned int TXtime;
 
 //라즈베리파이 시리얼 통신
-SoftwareSerial dataSerial(12,13);
+//SoftwareSerial dataSerial(12,13);
 void dataTX();
 void dataRX();
 String dataString;
@@ -19,7 +19,7 @@ void setup() {
 Serial.begin(9600);
 
 //라즈베리파이 시리얼 통신
-      dataSerial.begin(9600);
+      //dataSerial.begin(9600);
       
 //lora
     TXlora.begin(9600);
@@ -71,18 +71,18 @@ TXtime = millis();
 
 //라즈베리 시리얼
 void dataTX(){
-  if(dataSerial.available()){
-    dataSerial.println(cmd);
+  if(Serial.available()){
+    Serial.println(cmd);
     }
 }
 void dataRX(){
 
 
-  while(dataSerial.available())
+  while(Serial.available())
   {
-    if(dataSerial.available())
+    if(Serial.available())
     {
-      dataString = String(dataSerial.readStringUntil('\n'));
+      dataString = String(Serial.readStringUntil('\n'));
     }
   }
 

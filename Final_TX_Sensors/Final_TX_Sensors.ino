@@ -5,9 +5,7 @@
   
   gps -n8m
   vcc 5V
-  tx  5  rx  6
-
-  //gps 코드 추가 필요
+  tx  2  rx  3
 
   mpu6050
   vcc 5v
@@ -32,7 +30,7 @@
 
 #include <SoftwareSerial.h>
 //gps
-SoftwareSerial GPS(5, 6);  // Lora TX Lora Rx
+SoftwareSerial GPS(2,3);  
 byte buff[100];
   String lat;
   String lng;
@@ -104,7 +102,7 @@ void unfold(){
 }
 
 //라즈베리파이 시리얼 통신
-SoftwareSerial dataSerial(12,13);
+//SoftwareSerial dataSerial(12,13);
 void dataTX();
 void dataRX();
 String cmd;
@@ -125,7 +123,7 @@ void setup(){
 
   
 //라즈베리파이 시리얼 통신
-      dataSerial.begin(9600);
+    //  dataSerial.begin(9600);
     
   //gyro
  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -274,19 +272,17 @@ mpuInterrupt = false;
 
 //라즈베리 시리얼
 void dataTX(){
-  if(dataSerial.available()){
-    dataSerial.println(cmd);
-    }
+    Serial.println(cmd);
 }
 
-void dataRX(){
+/*void dataRX(){
   String dataString;
 
-  while(dataSerial.available())
+  while(Serial.available())
   {
-    if(dataSerial.available())
+    if(Serial.available())
     {
-      dataString = String(dataSerial.readStringUntil('\n'));
+      dataString = String(Serial.readStringUntil('\n'));
     }
   }
 
@@ -294,4 +290,4 @@ void dataRX(){
   {
     Serial.println(dataString);
   }
-}
+}*/

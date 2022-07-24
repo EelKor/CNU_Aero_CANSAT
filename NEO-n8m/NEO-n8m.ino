@@ -22,13 +22,18 @@ void loop() { // run over and over
   if (GPS.available()) {
     GPS.readBytesUntil('\n',buff,100);
     String msg = buff;
+    
+    
     if(msg.substring(0,6).equals("$GNGGA") || msg.substring(0,6).equals("$GPGGA"))
     {
+     // Serial.println(msg);
+      
       String lat = msg.substring(17,29);
       String lng = msg.substring(30,43);
       Serial.print(lat);
       Serial.print("\t");
-      Serial.println(lng);    
+      Serial.println(lng);  
+     
     }
     
     
