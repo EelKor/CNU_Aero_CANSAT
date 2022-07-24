@@ -176,8 +176,24 @@ void loop()
     String msg = buff;
     if(msg.substring(0,6).equals("$GNGGA") || msg.substring(0,6).equals("$GPGGA"))
     {
+     
+     int index = msg.indexOf(",");// 첫 번째 콤마 위치
+     int index2= msg.indexOf(",",index+1); 
+     int index3 = msg.indexOf(",",index2+1); 
+     int index4 = msg.indexOf(",",index3+1); 
+     int index5 = msg.indexOf(",",index4+1);
+     int index6 = msg.indexOf(",",index5+1);  
+     String positionFix = msg.substring(index6+1,index6+2);
+      if (index6<43){positionFix = "0";}
+     //Serial.println(positionFix);
+     
+     if(positionFix != "0"){   
       lat = msg.substring(17,29);
       lng = msg.substring(30,43);
+     }
+
+     else{
+      lat = '0'; lng = '0';
     }
  }
       
@@ -266,7 +282,7 @@ mpuInterrupt = false;
 
 }
 }
-
+}
 /*=====================================================*/
 
 
