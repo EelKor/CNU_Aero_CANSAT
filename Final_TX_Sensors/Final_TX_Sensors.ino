@@ -3,9 +3,11 @@
   SDA 9     SCB 10
   SDO 11
   
-  gps -6m 기준
+  gps -n8m
   vcc 5V
   tx  5  rx  6
+
+  //gps 코드 추가 필요
 
   mpu6050
   vcc 5v
@@ -30,7 +32,10 @@
 
 #include <SoftwareSerial.h>
 //gps
-#include <TinyGPS.h>
+SoftwareSerial GPS(5, 6);  // Lora TX Lora Rx
+byte buff[100];
+  String lat;
+  String lng;
 
 //gyro
 #include "I2Cdev.h"
@@ -83,10 +88,6 @@ unsigned int t, dt=0;
 float dH=0, prvHigh = 0;
 float FS = 0;
 
-//gps
-long lat,lon;
-SoftwareSerial gpsSerial(5,6);
-TinyGPS gps;
 
 //servo
 #include <Servo.h>
@@ -114,6 +115,15 @@ String cmd;
 void setup(){
       Serial.begin(9600);
 
+//gps
+ GPS.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  Serial.println("Goodnight moon!");
+
+
+  
 //라즈베리파이 시리얼 통신
       dataSerial.begin(9600);
     
@@ -162,6 +172,17 @@ void loop()
 {
     t = millis();
 
+//gps
+ if (GPS.available()) {
+    GPS.readBytesUntil('\n',buff,100);
+    String msg = buff;
+    if(msg.substring(0,6).equals("$GNGGA") || msg.substring(0,6).equals("$GPGGA"))
+    {
+      lat = msg.substring(17,29);
+      lng = msg.substring(30,43);
+    }
+ }
+      
     //bmp
 
   tem = bmp.readTemperature();//온도
@@ -240,14 +261,15 @@ mpuInterrupt = false;
   prvHigh = bmp.readAltitude(1006) - setHigh;
    cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
        +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-       /*+' '+String(lat)+' '+String(lon)*/;//전송내용 문자열로 변환;
+       +' '+String(lat)+' '+String(lng);//전송내용 문자열로 변환;
   dataTX();
 
+  unfold();
+
 }
 }
 
-
-
+/*=====================================================*/
 
 
 //라즈베리 시리얼
@@ -256,6 +278,7 @@ void dataTX(){
     dataSerial.println(cmd);
     }
 }
+
 void dataRX(){
   String dataString;
 

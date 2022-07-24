@@ -32,7 +32,7 @@ Serial.begin(9600);
     RXlora.begin(9600);
     delay(100);
     RXlora.println("AT+PARAMETER=10,7,1,7"); delay(100);
-    RXlora.println("AT+ADDRESS=75"); delay(100);
+    RXlora.println("AT+ADDRESS=75"); delay(100); 
     RXlora.println("AT+NETWORKID=2"); delay(100);
       Serial.println("RXlora setup end");
 }
