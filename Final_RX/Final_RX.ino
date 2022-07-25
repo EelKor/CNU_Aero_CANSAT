@@ -5,15 +5,13 @@ SoftwareSerial lora(2,3);
 int dt; float tem, pa, high, FS;
 double angle_x, angle_y, angle_z;
 String lat, lng, str1, str2, str3, str4, str5, str6, str7, str8;
+String inString, cmd;
 
-  String inString;
-  String cmd;
+//웹서버에서: 구조 신호 횟수=SOS
 
-
-
+/*=============================================================================*/
  
-void setup()
-{
+void setup(){
   Serial.begin(9600);
   lora.begin(9600);
   lora.println("AT+PARAMETER=10,7,1,7");
@@ -31,22 +29,18 @@ void setup()
   Serial.println("Label,dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
  
 }
- 
-void loop()
-{
 
+/*====================================================================================*/
+ 
+void loop(){
 //수신
-  while(lora.available())
-  {
-    if(lora.available())
-    {
-     inString = String(lora.readStringUntil('\n'));
-     delay(50);
+  while(lora.available()) {
+    if(lora.available()) {
+     inString = String(lora.readStringUntil('\n')); delay(50);
     }
   }
 
-  if(inString.length() > 0)
-  {
+  if(inString.length() > 0) {
     int index = inString.indexOf(" ");
      int index2 = inString.indexOf(" ",index+1); 
      int index3 = inString.indexOf(" ",index2+1); 
@@ -69,7 +63,6 @@ void loop()
      dt =str1.toInt(); FS = str2.toFloat();
      tem = str3.toFloat(); pa = str4.toFloat(); high = str5.toFloat();
      angle_x = str6.toDouble(); angle_y = str7.toDouble(); angle_z = str8.toDouble();
-     // */
 
      lat = inString.substring(index8+1,index9);
      lng = inString.substring(index9,inString.length());
@@ -93,7 +86,6 @@ void loop()
      double lng_dd = d_lng_int + m_lng_double/60;
 
    // Serial.println(inString);
-
      String printStr = "DATA,"+ String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
        +String(angle_x)+','+String(angle_y)+','+String(angle_z)+','+String(lat_dd)+','+String(lng_dd);
 
@@ -101,8 +93,7 @@ void loop()
    }
 
   //송신
-if(Serial.available())
-    {
+if(Serial.available()){
      cmd = String(Serial.readStringUntil('\n'));
      
        if(cmd.length() > 0){
@@ -112,6 +103,4 @@ if(Serial.available())
        }
     }
 
-     
-     
 }

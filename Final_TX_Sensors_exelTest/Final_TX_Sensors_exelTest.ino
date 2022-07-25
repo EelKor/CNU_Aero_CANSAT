@@ -41,7 +41,7 @@ byte buff[100];
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
-#define INTERRUPT_PIN 2
+#define INTERRUPT_PIN 4
 
 MPU6050 mpu;
 
@@ -162,6 +162,10 @@ void setup(){
   Serial.println("servo ok");
   delay(100);
 
+  //액셀연동
+  Serial.println("CLEARDATA");
+  Serial.println("LABEL,dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
+
 }
 
 /*===========================================*/
@@ -196,7 +200,6 @@ void loop()
       lat = '0'; lng = '0';
     }
  }
-  else{lat = "null"; lng = "null";}
       
     //bmp
 
@@ -274,13 +277,14 @@ mpuInterrupt = false;
 
 
   prvHigh = bmp.readAltitude(1006) - setHigh;
-   cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
-       +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-       +' '+String(lat)+' '+String(lng);//전송내용 문자열로 변환;
+   cmd = "DATA,"+String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
+       +String(ypr[0] * 180/M_PI)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+String(lat)+','+String(lng);//전송내용 문자열로 변환;
   //dataTX();
-  Serial.println(cmd);
-
-  unfold();
+    Serial.println("DATA,"+String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+' '+String(high)+','
+       +String(ypr[0] * 180/M_PI)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+String(lat)+','+String(lng));
+ // unfold();
 
 }
 }

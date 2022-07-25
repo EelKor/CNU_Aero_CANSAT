@@ -18,6 +18,7 @@ String dataString;
 void setup() {
 Serial.begin(9600);
 
+
 //라즈베리파이 시리얼 통신
       //dataSerial.begin(9600);
       
@@ -45,7 +46,7 @@ void loop() {
   
   dataRX();
   
-TXtime = millis();
+  TXtime = millis();
     if(TXtime-preTXtime >1000){
       TXlora.println("AT+SEND=77,"+String(dataString.length())+","+dataString);
       delay(100);
@@ -63,21 +64,17 @@ TXtime = millis();
   {
     Serial.println(inString);
   }
-
-
 }
 
 
 
 //라즈베리 시리얼
-void dataTX(){
+/*void dataTX(){
   if(Serial.available()){
     Serial.println(cmd);
     }
-}
+}*/
 void dataRX(){
-
-
   while(Serial.available())
   {
     if(Serial.available())
