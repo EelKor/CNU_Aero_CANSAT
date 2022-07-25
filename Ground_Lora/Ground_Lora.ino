@@ -26,7 +26,8 @@ void loop()
       TXtime = millis();
       if(TXtime-preTXtime > 10000)
       {
-        loraDown.println("AT+SEND=76,8,Testing!");
+        String msg = "동원령선포, 국방부장관";
+        loraDown.println("AT+SEND=76," + String(msg.length()) + "," + msg);
         loraDown.flush();
         preTXtime = TXtime;
       }
@@ -43,7 +44,6 @@ void loop()
       #endif
       if(loraDown.available())
       {
-        Serial.println(loraDown.available());
         Serial.println(loraDown.readStringUntil('\n'));
       }
       
