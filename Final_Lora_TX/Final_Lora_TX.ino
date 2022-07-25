@@ -4,8 +4,8 @@ const int interval = 1000;
 SoftwareSerial TXlora(2,3);  // trans Lora
 SoftwareSerial RXlora(9,10);  // receive Lora
 String cmd;
-  unsigned int preTXtime;
-  unsigned int TXtime;
+  unsigned long preTXtime;
+  unsigned long TXtime;
 
 //라즈베리파이 시리얼 통신
 //SoftwareSerial dataSerial(12,13);
@@ -25,9 +25,12 @@ Serial.begin(9600);
 //lora
     TXlora.begin(9600);
     delay(100);
+    TXlora.listen();
+    while(TXlora.available()){
     TXlora.println("AT+PARAMETER=10,7,1,7"); delay(100);
     TXlora.println("AT+ADDRESS=76"); delay(100);
     TXlora.println("AT+NETWORKID=2"); delay(100);
+    }
       Serial.println("TXlora setup end");
 
 
@@ -35,10 +38,14 @@ Serial.begin(9600);
 
     RXlora.begin(9600);
     delay(100);
+    RXlora.listen();
+    while(RXlora.available()){
     RXlora.println("AT+PARAMETER=10,7,1,7"); delay(100);
     RXlora.println("AT+ADDRESS=75"); delay(100); 
     RXlora.println("AT+NETWORKID=2"); delay(100);
+    }
       Serial.println("RXlora setup end");
+    
 }
 
 
@@ -47,11 +54,10 @@ Serial.begin(9600);
 
 void loop() {
   
- // dataRX();
+ //dataRX();
  dataString= "testing!";
   
   TXtime = millis();
-  TXlora.listen();
     if(TXtime-preTXtime >1000){
       TXlora.println("AT+SEND=77,"+String(dataString.length())+","+dataString);
       delay(100);
@@ -62,10 +68,10 @@ void loop() {
      //lora 수신
    String inString;
    RXlora.listen();
-    if(RXlora.available()){
+   while(RXlora.available()){
       inString = String(RXlora.readStringUntil('\n'));
       delay(100);
-    }
+   }
   if(inString.length() > 0)
   {
     Serial.println(inString);

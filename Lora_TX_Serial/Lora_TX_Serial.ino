@@ -2,8 +2,8 @@
  
 const int interval = 1000;
 SoftwareSerial lora(2,3);
-unsigned int preTXtime;
-unsigned int TXtime;
+unsigned long preTXtime;
+  unsigned long TXtime;
 
 void setup(){
     Serial.begin(9600);
@@ -20,13 +20,18 @@ void setup(){
 }
 
 void loop()
-{   /*TXtime = millis();
-    if(TXtime-preTXtime >1000){
-      lora.println("AT+SEND=75,8,Testing!"); //75한테 전송
-      lora.flush();
-      preTXtime = TXtime;
+{   
+  if(Serial.available())
+    {
+     String cmd = String(Serial.readStringUntil('\n'));
+     
+       if(cmd.length() > 0){
+         lora.println("AT+SEND=75,"+String(cmd.length())+","+cmd);
+         //Serial.println(cmd);
+          lora.flush();
+       }
     }
-    */
+    
       while(lora.available())
       {
         Serial.write(lora.read()); //76이 보낸 것 읽어들임

@@ -32,8 +32,8 @@
 //gps
 SoftwareSerial GPS(2,3);  
 byte buff[100];
-  String lat;
-  String lng;
+  String lat; double lat_dd;
+  String lng; double lng_dd;
 
 //gyro
 #include "I2Cdev.h"
@@ -190,13 +190,31 @@ void loop()
      if(positionFix != "0"){   
       lat = msg.substring(17,29);
       lng = msg.substring(30,43);
+      
+     int d_index_lat = lat.indexOf(".");
+     int d_index_lng = lng.indexOf(".");
+
+     String d_lat = lat.substring(d_index_lat-2, d_index_lat);
+     String d_lng = lng.substring(d_index_lng-2, d_index_lng);
+
+     String m_lat = lat.substring(d_index_lat+1,lat.length());
+     String m_lng = lng.substring(d_index_lng+1,lng.length());
+
+     int d_lat_int = d_lat.toInt();
+     int d_lng_int = d_lng.toInt();
+
+     double m_lat_double = m_lat.toDouble();
+     double m_lng_double = m_lng.toDouble();
+
+     lat_dd = d_lat_int + m_lat_double/60;
+     lng_dd = d_lng_int + m_lng_double/60;
      }
 
      else{
-      lat = '0'; lng = '0';
+      lat_dd = 0; lng_dd = 0;
     }
  }
-  else{lat = "null"; lng = "null";}
+  else{lat_dd = 377; lng_dd = 377;}
       
     //bmp
 
@@ -276,7 +294,7 @@ mpuInterrupt = false;
   prvHigh = bmp.readAltitude(1006) - setHigh;
    cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
        +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-       +' '+String(lat)+' '+String(lng);//전송내용 문자열로 변환;
+       +' '+String(lat_dd)+' '+String(lng_dd);//전송내용 문자열로 변환;
   //dataTX();
   Serial.println(cmd);
 
