@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial LoRa(9, 10); // RX, TX.
+SoftwareSerial LoRa(2,3); // RX, TX.
 
 void setup() {
   // Open serial communications and wait for port to open:

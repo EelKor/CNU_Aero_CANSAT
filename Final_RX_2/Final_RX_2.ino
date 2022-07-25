@@ -1,15 +1,16 @@
+//수신부 코드입니다.
+
+/* Lora_trans
+  VCC 3.3V 
+  tx 2      rx 3 */
+
+
 #include <SoftwareSerial.h>
  
 SoftwareSerial lora(2,3);
-
-int dt; float tem, pa, high, FS;
-double angle_x, angle_y, angle_z;
-String lat, lng, str1, str2, str3, str4, str5, str6, str7, str8;
-String inString, cmd;
-
-/*=============================================================================*/
  
-void setup(){
+void setup()
+{
   Serial.begin(9600);
   lora.begin(9600);
   lora.println("AT+PARAMETER=10,7,1,7");
@@ -21,49 +22,33 @@ void setup(){
   lora.println("AT+NETWORKID=2"); //네트워크 아이디
   delay(100);
   Serial.println("lora setup end");
-
-  //액셀연동
-  //Serial.println("CLEARDATA");
-  //Serial.println("Label,dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
-
-  //Serial.println("dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
  
 }
-
-/*====================================================================================*/
  
-void loop(){
-int dt; float tem, pa, high, FS;
-double angle_x, angle_y, angle_z;
-String lat, lng, str1, str2, str3, str4, str5, str6, str7, str8;
-String inString, cmd;
-  
-//송신
-if(Serial.available())
-    {
-     cmd = String(Serial.readStringUntil('\n'));
-     
-       if(cmd.length() > 0){
-         lora.println("AT+SEND=75,"+String(cmd.length())+","+cmd);
-         //Serial.println(cmd);
-         //lora.flush();
-          delay(50);
-       }
-    }
+void loop()
+{
+  int dt; float tem, pa, high, FS;
+  double angle_x, angle_y, angle_z;
+  String lat, lng, str1, str2, str3, str4, str5, str6, str7, str8;
+  String inString;
+  String cmd;
 
 
-  
+
 //수신
-  while(lora.available()) {
-    if(lora.available()) {
-     inString = String(lora.readStringUntil('\n')); delay(50);
+  while(lora.available())
+  {
+    if(lora.available())
+    {
+     inString = String(lora.readStringUntil('\n'));
+     delay(50);
     }
   }
 
-  if(inString.length() > 0) {
-    Serial.println(inString); 
-    
-     int index = inString.indexOf(" ");
+  if(inString.length() > 0)
+  {
+    //Serial.println(inString);
+    int index = inString.indexOf(" ");
      int index2 = inString.indexOf(" ",index+1); 
      int index3 = inString.indexOf(" ",index2+1); 
      int index4 = inString.indexOf(" ",index3+1); 
@@ -108,9 +93,22 @@ if(Serial.available())
      double lng_dd = d_lng_int + m_lng_double/60;
 
      String printStr = String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
-       +String(angle_x)+','+String(angle_y)+','+String(angle_z)+','+String(lat_dd)+','+String(lng_dd); //*/
+       +String(angle_x)+','+String(angle_y)+','+String(angle_z)+','+String(lat_dd)+','+String(lng_dd);
 
-     Serial.println(printStr);
-   }
+       Serial.println(printStr);
+  }
+
+  //송신
+if(Serial.available())
+    {
+     cmd = String(Serial.readStringUntil('\n'));
+     
+       if(cmd.length() > 0){
+         lora.println("AT+SEND=75,"+String(cmd.length())+","+cmd);
+         //Serial.println(cmd);
+          delay(50);
+       }
+    }
+
 
 }

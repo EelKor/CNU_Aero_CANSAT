@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial GPS(2,3);  // Lora TX Lora Rx
+SoftwareSerial GPS(5,6);  // Lora TX Lora Rx
 byte buff[100];
 void setup() {
   // Open serial communications and wait for port to open:
