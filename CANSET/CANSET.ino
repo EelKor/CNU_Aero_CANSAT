@@ -27,10 +27,12 @@ void setup(){
 void loop()
 {
       TXtime = millis();
-      if(TXtime-preTXtime > 1000 && Serial.available())
+      if(TXtime-preTXtime > 3000 /*&& Serial.available()*/)
       { 
         String msg = Serial.readStringUntil('\n');
-        loraTX.println("AT+SEND=77," + String(msg.length()) + "," + msg);
+        String testMsg = "-12,60,354443,00596";
+        //loraTX.println("AT+SEND=77," + String(msg.length()) + "," + msg);
+        loraTX.println("AT+SEND=77," + String(testMsg.length()) + "," + testMsg);
         loraTX.flush();
         preTXtime = TXtime;
       }
