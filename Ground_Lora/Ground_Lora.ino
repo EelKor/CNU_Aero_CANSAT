@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-
+//#define DEBUG
 #define ledPin 13
 unsigned long lastTransmission;
 const int interval = 1000;
@@ -7,36 +7,44 @@ const int interval = 1000;
 unsigned long preTXtime;
 unsigned long TXtime;
 SoftwareSerial loraDown(2,3);
-SoftwareSerial loraUp(9,10);
 
 void setup(){
     Serial.begin(9600);
     loraDown.begin(9600);
     delay(100);
     loraDown.println("AT+PARAMETER=10,7,1,7");
-    loraDown.flush();
+    delay(100);
     loraDown.println("AT+ADDRESS=77");
-    loraDown.flush();
+    delay(100);
     loraDown.println("AT+NETWORKID=2");
-    loraDown.flush();
+    delay(100);
 }
 
 void loop()
 {
-     /* 
+      
       TXtime = millis();
-      if(TXtime-preTXtime >1000)
+      if(TXtime-preTXtime > 10000)
       {
-        loraUp.println("AT+SEND=75,8,Testing!");
-        loraUp.flush();
+        loraDown.println("AT+SEND=76,8,Testing!");
+        loraDown.flush();
         preTXtime = TXtime;
       }
-      */
       
+      #ifdef DEBUG
+      Serial.print(loraDown.listen());
+      Serial.print(" ");
+      Serial.print(loraDown.isListening());
+      Serial.print(" ");
+      Serial.print(loraDown.overflow());
+      Serial.print(" ");
+      Serial.println(loraDown.available());
+      
+      #endif
       if(loraDown.available())
       {
-        while(loraDown.available()) Serial.write(loraDown.read());
+        Serial.println(loraDown.available());
+        Serial.println(loraDown.readStringUntil('\n'));
       }
       
-      delay(100);
 }

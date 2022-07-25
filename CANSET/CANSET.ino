@@ -1,13 +1,13 @@
  #include <SoftwareSerial.h>
 
 #define ledPin 13
+//#define DEBUG
 unsigned long lastTransmission;
 const int interval = 1000;
 unsigned long TXtime;
 unsigned long preTXtime;
 
 SoftwareSerial loraTX(2,3);  // Lora TX , Lora RX
-SoftwareSerial loraRX(9,10);
 
 void setup(){
     Serial.begin(9600);
@@ -27,16 +27,23 @@ void setup(){
 void loop()
 {
       TXtime = millis();
-      if(TXtime-preTXtime >1000)
+      if(TXtime-preTXtime > 1000)
       {
         loraTX.println("AT+SEND=77,19,CANSET SENDING 815!");
         loraTX.flush();
         preTXtime = TXtime;
       }
 
+      #ifdef DEBUG
+      Serial.print(loraTX.isListening());
+      Serial.print(" ");
+      Serial.println(loraTX.available());
+      #endif
+      
       if(loraTX.available())
        {
-        while(loraTX.available())  Serial.write(loraTX.read());
+        Serial.println(loraTX.available());
+        Serial.println(loraTX.readStringUntil('\n'));
       }
       
 
