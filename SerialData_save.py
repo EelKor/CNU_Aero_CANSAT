@@ -1,19 +1,22 @@
-f=open("TestData.txt",'w')
+f=open("TestData.txt",'w',encoding = "UTF8")
 
 import time
 import serial
 
-RXport = "COM5"
 
-arduino = serial.Serial(port = RXport, baudrate = 9600)
-time.sleep(3)
+arduino = serial.Serial(port = "COM9", baudrate = 9600)
 
-arduino.write(b"test string")
-time.sleep(1)
-
-while(True):
-    data = arduino.read_all()
-    f.write(data)
-
-
-f.close()
+while True:
+    if arduino.readable():
+        cmdString = input()
+        if cmdString == "end":
+            f.close()
+            break
+        cmdStringByte = cmdString.encode('utf-8')
+        arduino.write(cmdStringByte)
+        f.write(cmdString)
+        
+        dataString = arduino.readline()
+        dataString_decoded = dataString.decode()[:len(dataString)-1]
+        print(dataString_decoded)
+        f.write(dataString_decoded)
