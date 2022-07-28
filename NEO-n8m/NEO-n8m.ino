@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial GPS(5,6);  // Lora TX Lora Rx
+SoftwareSerial GPS(2,3);  // Lora TX Lora Rx
 byte buff[100];
 void setup() {
   // Open serial communications and wait for port to open:
@@ -22,20 +22,20 @@ void loop() { // run over and over
   if (GPS.available()) {
     GPS.readBytesUntil('\n',buff,100);
     String msg = buff;
-    
+     //Serial.println(msg);
+
     
     if(msg.substring(0,6).equals("$GNGGA") || msg.substring(0,6).equals("$GPGGA"))
     {
-      Serial.println(msg);
-
-      String positionFix = msg.substring(44,45);
-      Serial.println(positionFix);
+     
+      //String positionFix = msg.substring(44,45);
+      //Serial.println(positionFix);
       
       String lat = msg.substring(17,29);
       String lng = msg.substring(30,43);
       Serial.print(lat);
       Serial.print("\t");
-      Serial.println(lng);  
+      Serial.println(lng);
      
     }
     

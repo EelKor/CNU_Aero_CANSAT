@@ -22,6 +22,11 @@ void setup()
   lora.println("AT+NETWORKID=2"); //네트워크 아이디
   delay(100);
   Serial.println("lora setup end");
+
+   //액셀연동
+  //Serial.println("CLEARDATA");
+  //Serial.println("Label,dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
+
  
 }
  
@@ -37,7 +42,7 @@ void loop()
   {
     if(lora.available())
     {
-     inString = String(lora.readStringUntil('\n'));
+     inString = /*"DATA,"+*/String(lora.readStringUntil('\n'));
      lora.flush();
     }
   }
@@ -53,7 +58,7 @@ if(Serial.available())
      cmd = String(Serial.readStringUntil('\n'));
      
        if(cmd.length() > 0){
-         lora.println("AT+SEND=75,"+String(cmd.length())+","+cmd);
+         lora.println("AT+SEND=76,"+String(cmd.length())+","+cmd);
          //Serial.println(cmd);
           delay(50);
        }

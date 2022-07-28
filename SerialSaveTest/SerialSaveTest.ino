@@ -1,11 +1,11 @@
+String input_data;
+
 void setup() {
 Serial.begin(9600);
 
 }
 
 void loop() {
-while(Serial.available()){
-  String inString = Serial.readStringUntil('\n');
-  Serial.println(inString);
-}
+Serial.println("testing!");
+delay(1000);
 }

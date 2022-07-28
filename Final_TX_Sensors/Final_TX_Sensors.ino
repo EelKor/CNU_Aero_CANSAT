@@ -102,9 +102,6 @@ void unfold(){
 }
 
 //라즈베리파이 시리얼 통신
-//SoftwareSerial dataSerial(12,13);
-void dataTX();
-void dataRX();
 String cmd;
 
 
@@ -191,15 +188,14 @@ void loop()
       lat = msg.substring(17,29);
       lng = msg.substring(30,43);
       
-     int d_index_lat = lat.indexOf(".");
+    /* int d_index_lat = lat.indexOf(".");
      int d_index_lng = lng.indexOf(".");
+     
+     String d_lat = lat.substring(0, d_index_lat-2);
+     String d_lng = lng.substring(0, d_index_lng-2);
 
-     String d_lat = lat.substring(d_index_lat-2, d_index_lat);
-     String d_lng = lng.substring(d_index_lng-2, d_index_lng);
-
-     String m_lat = lat.substring(d_index_lat+1,lat.length());
-     String m_lng = lng.substring(d_index_lng+1,lng.length());
-
+     String m_lat = lat.substring(d_index_lat-2,lat.length());
+     String m_lng = lng.substring(d_index_lng-2,lng.length());
      int d_lat_int = d_lat.toInt();
      int d_lng_int = d_lng.toInt();
 
@@ -207,14 +203,16 @@ void loop()
      double m_lng_double = m_lng.toDouble();
 
      lat_dd = d_lat_int + m_lat_double/60;
-     lng_dd = d_lng_int + m_lng_double/60;
+     lng_dd = d_lng_int + m_lng_double/60;*/
      }
 
      else{
-      lat_dd = 0; lng_dd = 0;
+     // lat_dd = 0; lng_dd = 0;
+      lat = '0'; lng = '0';
     }
  }
-  else{lat_dd = 377; lng_dd = 377;}
+ /* else{//lat_dd = 377; lng_dd = 377;
+       lat = "377"; lng = "377";}*/
       
     //bmp
 
@@ -294,8 +292,7 @@ mpuInterrupt = false;
   prvHigh = bmp.readAltitude(1006) - setHigh;
    cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
        +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-       +' '+String(lat_dd)+' '+String(lng_dd);//전송내용 문자열로 변환;
-  //dataTX();
+       +' '/*+String(lat_dd)+' '+String(lng_dd)+' '*/+String(lat)+' '+String(lng);//전송내용 문자열로 변환;
   Serial.println(cmd);
 
   unfold();
@@ -303,27 +300,3 @@ mpuInterrupt = false;
 }
 }
 }
-/*=====================================================*/
-
-
-//라즈베리 시리얼
-void dataTX(){
-    Serial.println(cmd);
-}
-
-/*void dataRX(){
-  String dataString;
-
-  while(Serial.available())
-  {
-    if(Serial.available())
-    {
-      dataString = String(Serial.readStringUntil('\n'));
-    }
-  }
-
-  if(dataString.length() > 0)
-  {
-    Serial.println(dataString);
-  }
-}*/

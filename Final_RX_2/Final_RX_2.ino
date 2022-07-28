@@ -77,14 +77,14 @@ void loop()
      int d_index_lat = lat.indexOf(".");
      int d_index_lng = lng.indexOf(".");
 
-     String d_lat = lat.substring(d_index_lat-2, d_index_lat);
-     String d_lng = lng.substring(d_index_lng-2, d_index_lng);
+     String d_lat = lat.substring(0, d_index_lat-2);
+     String d_lng = lng.substring(0, d_index_lng-2);
 
-     String m_lat = lat.substring(d_index_lat+1,lat.length());
-     String m_lng = lng.substring(d_index_lng+1,lng.length());
+     String m_lat = lat.substring(d_index_lat-2,lat.length());
+     String m_lng = lng.substring(d_index_lng-2,lng.length());
 
-     int d_lat_int = d_lat.toInt();
-     int d_lng_int = d_lng.toInt();
+     int d_lat_int = d_lat.toDouble();
+     int d_lng_int = d_lng.toDouble();
 
      double m_lat_double = m_lat.toDouble();
      double m_lng_double = m_lng.toDouble();

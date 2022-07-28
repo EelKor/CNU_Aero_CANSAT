@@ -44,7 +44,7 @@ if(Serial.available())
      cmd = String(Serial.readStringUntil('\n'));
      
        if(cmd.length() > 0){
-         lora.println("AT+SEND=75,"+String(cmd.length())+","+cmd);
+         lora.println("AT+SEND=76,"+String(cmd.length())+","+cmd);
          //Serial.println(cmd);
          //lora.flush();
           delay(50);
@@ -107,7 +107,7 @@ if(Serial.available())
      double lat_dd = d_lat_int + m_lat_double/60;
      double lng_dd = d_lng_int + m_lng_double/60;
 
-     String printStr = String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
+     String printStr =/*"DATA,+*/ String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
        +String(angle_x)+','+String(angle_y)+','+String(angle_z)+','+String(lat_dd)+','+String(lng_dd); //*/
 
      Serial.println(printStr);
