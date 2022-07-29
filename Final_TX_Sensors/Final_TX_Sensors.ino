@@ -15,9 +15,6 @@
   servo
   pwm 7
 
-  dataSerial
-  tx 12    rx 13
-
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
@@ -30,7 +27,7 @@
 
 #include <SoftwareSerial.h>
 //gps
-SoftwareSerial GPS(2,3);  
+SoftwareSerial GPS(3,4);  
 byte buff[100];
   String lat; double lat_dd;
   String lng; double lng_dd;
@@ -194,10 +191,11 @@ void loop()
      String d_lat = lat.substring(0, d_index_lat-2);
      String d_lng = lng.substring(0, d_index_lng-2);
 
-     String m_lat = lat.substring(d_index_lat-2,lat.length());
-     String m_lng = lng.substring(d_index_lng-2,lng.length());
-     int d_lat_int = d_lat.toInt();
-     int d_lng_int = d_lng.toInt();
+     String m_lat = lat.substring(d_index_lat-2,lat.length()-2);
+     String m_lng = lng.substring(d_index_lng-2,lng.length()-2);
+     
+     double d_lat_double = d_lat.toDouble();
+     double d_lng_double = d_lng.toDouble();
 
      double m_lat_double = m_lat.toDouble();
      double m_lng_double = m_lng.toDouble();
@@ -290,9 +288,9 @@ mpuInterrupt = false;
 
 
   prvHigh = bmp.readAltitude(1006) - setHigh;
-   cmd = String(dt)+' '+String(FS)+' '+String(tem)+' '+String(pa)+' '+String(high)+' '
-       +String(ypr[0] * 180/M_PI)+' '+String(ypr[1] * 180/M_PI)+' '+String(ypr[2] * 180/M_PI)
-       +' '/*+String(lat_dd)+' '+String(lng_dd)+' '*/+String(lat)+' '+String(lng);//전송내용 문자열로 변환;
+   cmd = String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
+       +String(ypr[0] * 180/M_PI)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','/*+String(lat_dd)+','+String(lng_dd)+','*/+String(lat)+','+String(lng);//전송내용 문자열로 변환;
   Serial.println(cmd);
 
   unfold();

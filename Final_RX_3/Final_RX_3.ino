@@ -25,7 +25,7 @@ void setup()
 
    //액셀연동
   //Serial.println("CLEARDATA");
-  //Serial.println("Label,dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
+  Serial.println(/*"Label,"*/+"dt,FallSpeed,tem,pa,high,angle_x,angle_y,angle_z,lat,lng");
 
  
 }
