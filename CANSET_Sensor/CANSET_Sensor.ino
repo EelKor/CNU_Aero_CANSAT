@@ -18,6 +18,9 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
+#define V1_BOARD
+//#define V2_BOARD
+
 //bmp id 0x58
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
@@ -27,7 +30,12 @@
 
 #include <SoftwareSerial.h>
 //gps
-SoftwareSerial GPS(3,4);  
+#ifdef V1_BOARD
+SoftwareSerial GPS(2,3);
+#endif
+#ifdef V2_Board
+SoftwareSerial GPS(3,4);
+#endif  
 byte buff[100];
   String lat; double lat_dd;
   String lng; double lng_dd;
@@ -105,7 +113,7 @@ String cmd;
 /*======================================*/
 
 void setup(){
-      Serial.begin(9600);
+      Serial.begin(115200);
 
 //gps
  GPS.begin(9600);
