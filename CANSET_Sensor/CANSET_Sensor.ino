@@ -86,7 +86,7 @@ float tem ;//온도
 float pa; //압력
 float high ; //고도
 float setHigh;
-
+const int stdPressure = 1013;
 
 //time & fall speed
 unsigned long t, dt=0;
@@ -100,20 +100,12 @@ Servo servo;
 int value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 300; //낙하산 전개 고도
-float prepareHigh = 5;
-bool isPrepare = 0;
+const float unfoldHigh = 5.0; //낙하산 전개 고도
 
 void unfold(){
-high = bmp.readAltitude(1006) - setHigh;
-  if(!isPrepare && high<prepareHigh){
-    isPrepare = 0;
-  }
-  else if (!isPrepare && high>=prepareHigh){
-    isPrepare = 1;
-  }
-  else if (isPrepare && high<unfoldHigh){
+  if (high >= unfoldHigh){
     servo.attach(7);
+    delay(100);
     servo.write(unfoldValue);
     delay(100);
     servo.detach();
@@ -161,22 +153,22 @@ void setup(){
         dmpReady = true;
         packetSize = mpu.dmpGetFIFOPacketSize();
     }
-    Serial.println("gyro ok");
+    Serial.println("GYRO - OK");
 
      //bmp
  if (!bmp.begin()) {
     Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
     while (1);
   } // */
-  Serial.println("bmp ok");
-  setHigh =  bmp.readAltitude(1006);
+  Serial.println("BMP - Start Calibration");
+  for(int i=0; i<10; i++)
+  {
+    setHigh +=  bmp.readAltitude(stdPressure);
+    delay(1000);
+  }
+  setHigh = setHigh / 10;
+  Serial.println("BMP - OK");
 
-     //servo
-  /*servo.attach(7);
-  value = 0;
-  servo.write(value);
-  Serial.println("servo ok");
-  delay(100);*/
 
 }
 
@@ -306,16 +298,16 @@ mpuInterrupt = false;
 
 //time & fall speed
     dt = millis()-t;
-    high = bmp.readAltitude(1006) - setHigh; //고도 */
+    high = bmp.readAltitude(stdPressure) - setHigh; //고도 */
+    //high = bmp.readAltitude(stdPressure);
     dH =high - prvHigh;
     FS= dH/dt;
 
 
 
-  prvHigh = bmp.readAltitude(1006) - setHigh;
-   cmd =String(dt)+','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','
-       +String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
-       +','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+  prvHigh = bmp.readAltitude(stdPressure) - setHigh;
+   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
+       +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
        +','+String(lat)+','+String(lng);//전송내용 문자열로 변환;
   Serial.println(cmd);
 
