@@ -20,8 +20,8 @@ Servo servo;
 int value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 300; //낙하산 전개 고도
-float prepareHigh = 200;
+float unfoldHigh = 10; //낙하산 전개 고도
+float prepareHigh = 5;
 bool isPrepare = 0;
 
 #define DEBUG
@@ -39,11 +39,11 @@ void setup() {
   setHigh =  bmp.readAltitude(1006);
 
      //servo
-  servo.attach(7);
+  /*servo.attach(7);
   value = 0;
   servo.write(value);
   Serial.println("servo ok");
-  delay(100);
+  delay(100);*/
 }
 
 void loop() {
@@ -55,7 +55,10 @@ void loop() {
     isPrepare = 1;
   }
   else if (isPrepare && high<unfoldHigh){
+    servo.attach(7);
     servo.write(unfoldValue);
+    delay(100);
+    servo.detach();
   }
  #ifdef DEBUG
  Serial.println(String(high)+' '+String(isPrepare)+' '+String(servo.read()));
