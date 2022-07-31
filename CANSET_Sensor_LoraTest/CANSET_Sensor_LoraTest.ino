@@ -167,11 +167,11 @@ void setup(){
   setHigh =  bmp.readAltitude(1006);
 
      //servo
-  servo.attach(7);
+  /*servo.attach(7);
   value = 0;
   servo.write(value);
   Serial.println("servo ok");
-  delay(100);
+  delay(100);*/
 
   //lora
   #ifdef LORA

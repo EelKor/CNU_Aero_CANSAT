@@ -101,10 +101,22 @@ int value = 0;
 int unfoldValue = 90;
 String data;
 float unfoldHigh = 300; //낙하산 전개 고도
+float prepareHigh = 5;
+bool isPrepare = 0;
 
 void unfold(){
-  if (high<= unfoldHigh){
+high = bmp.readAltitude(1006) - setHigh;
+  if(!isPrepare && high<prepareHigh){
+    isPrepare = 0;
+  }
+  else if (!isPrepare && high>=prepareHigh){
+    isPrepare = 1;
+  }
+  else if (isPrepare && high<unfoldHigh){
+    servo.attach(7);
     servo.write(unfoldValue);
+    delay(100);
+    servo.detach();
   }
 }
 
@@ -160,11 +172,11 @@ void setup(){
   setHigh =  bmp.readAltitude(1006);
 
      //servo
-  servo.attach(7);
+  /*servo.attach(7);
   value = 0;
   servo.write(value);
   Serial.println("servo ok");
-  delay(100);
+  delay(100);*/
 
 }
 
