@@ -18,8 +18,9 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-//#define V1_BOARD
-#define V2_BOARD
+#define V1_BOARD
+//#define V2_BOARD
+#define LORA
 
 //bmp id 0x58
 #include <SPI.h>
@@ -111,11 +112,17 @@ void unfold(){
 //라즈베리파이 시리얼 통신
 String cmd;
 
+//lora
+#ifdef LORA
+SoftwareSerial lora(6,5);
+#endif
+
+
 
 /*======================================*/
 
 void setup(){
-      Serial.begin(115200);
+      Serial.begin(9600);
 
 //gps
  GPS.begin(9600);
@@ -166,6 +173,20 @@ void setup(){
   Serial.println("servo ok");
   delay(100);
 
+  //lora
+  #ifdef LORA
+  lora.begin(9600);
+  lora.println("AT+PARAMETER=10,7,1,7");
+  delay(100);
+  lora.println("AT+IPR=9600"); //로라 속도
+  delay(100);
+  lora.println("AT+ADDRESS=75"); //로라 주소 지정
+  delay(100);
+  lora.println("AT+NETWORKID=2"); //네트워크 아이디
+  delay(100);
+  Serial.println("lora setup end");
+  #endif
+
 }
 
 /*===========================================*/
@@ -173,6 +194,7 @@ void setup(){
 void loop()
 {
     t = millis();
+
 
 //gps
  if (GPS.available()) {
@@ -298,8 +320,6 @@ mpuInterrupt = false;
     dH =high - prvHigh;
     FS= dH/dt;
 
-
-
   prvHigh = bmp.readAltitude(1006) - setHigh;
    cmd =String(dt)+','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','
        +String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
@@ -310,5 +330,22 @@ mpuInterrupt = false;
   unfold();
   prvHigh = high;
 
+  //lora
+#ifdef LORA
+  String inString;
+   while(lora.available())
+  {
+    if(lora.available())
+    {
+     inString = String(lora.readStringUntil('\n'));
+     //lora.flush();
+    }
+  }
+
+  if(inString.length() > 0)
+  {
+    Serial.println(inString);
+  }
+#endif
 }
 }
