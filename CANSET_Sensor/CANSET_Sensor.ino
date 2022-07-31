@@ -18,8 +18,8 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-#define V1_BOARD
-//#define V2_BOARD
+//#define V1_BOARD
+#define V2_BOARD
 
 //bmp id 0x58
 #include <SPI.h>
@@ -33,7 +33,7 @@
 #ifdef V1_BOARD
 SoftwareSerial GPS(2,3);
 #endif
-#ifdef V2_Board
+#ifdef V2_BOARD
 SoftwareSerial GPS(3,4);
 #endif  
 byte buff[100];
@@ -51,6 +51,7 @@ byte buff[100];
 MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
+#define OUTPUT_READABLE_REALACCEL
 
  bool dmpReady = false;
 uint8_t mpuIntStatus;
@@ -66,6 +67,7 @@ VectorInt16 aaWorld;
 VectorFloat gravity;
 float euler[3];
 float ypr[3]; 
+int16_t gx, gy, gz;
 
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
@@ -87,7 +89,7 @@ float setHigh;
 
 
 //time & fall speed
-unsigned int t, dt=0;
+unsigned long t, dt=0;
 float dH=0, prvHigh = 0;
 float FS = 0;
 
@@ -284,7 +286,10 @@ mpuInterrupt = false;
             teapotPacket[9] = fifoBuffer[13];
             Serial.write(teapotPacket, 14);
             teapotPacket[11]++; 
-        #endif}
+        #endif
+
+        mpu.getRotation(&gx,&gy,&gz);
+        }
 
 
 //time & fall speed
@@ -296,13 +301,13 @@ mpuInterrupt = false;
 
 
   prvHigh = bmp.readAltitude(1006) - setHigh;
-   cmd = String(dt)+','+String(FS)+','+String(tem)+','+String(pa)+','+String(high)+','
-       +String(ypr[0] * 180/M_PI)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','/*+String(lat_dd)+','+String(lng_dd)+','*/+String(lat)+','+String(lng);//전송내용 문자열로 변환;
+   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)+','+
+       String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+String(lat)+','+String(lng);//전송내용 문자열로 변환;
   Serial.println(cmd);
 
   unfold();
+  prvHigh = high;
 
-}
 }
 }
