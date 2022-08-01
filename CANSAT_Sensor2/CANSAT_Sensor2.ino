@@ -18,7 +18,14 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
+
+
+/**************** 디버그 모드 ***********************/
 //#define UNFOLD
+//#define DEBUG
+
+/***************************************************/
+
 
 //gps
 #include <TinyGPS++.h>
@@ -42,7 +49,6 @@ void gpsData(){
   {
     latData = "null";
     lngData = "null";
-    /*Serial.print(F("INVALID"));*/
   }
 }
 
@@ -81,7 +87,6 @@ float euler[3];
 float ypr[3]; 
 int16_t gx, gy, gz;
 
-uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
 volatile bool mpuInterrupt = false;
 void dmpDataReady() {
@@ -94,14 +99,11 @@ void dmpDataReady() {
 #define SDO 11
 
 Adafruit_BMP280 bmp(CSB, SDA, SDO, SCL);
-float tem ;//온도
-float pa; //압력
-float high ; //고도
-float setHigh;
 const float stdPa = 1013;
-
-
-//time & fall speed
+float tem;//온도
+float pa; //압력
+float alt; //고도
+float setAlt;
 unsigned long t, dt=0;
 float dH=0, prvHigh = 0;
 float FS = 0;
@@ -111,27 +113,49 @@ float FS = 0;
 #ifdef UNFOLD
 #include <Servo.h>
 Servo servo;
-int value = 0;
-int unfoldValue = 90;
+const int value = 0;
+const int unfoldValue = 90;
+const float unfoldAlt = 20; //낙하산 전개 고도
+const float prepareAlt = 5;
 String data;
-float unfoldHigh = 20; //낙하산 전개 고도
-float prepareHigh = 5;
 bool isPrepare = 0;
+unsigned char 
 
 
-void unfold(){
-high = bmp.readAltitude(stdPa) - setHigh;
-  if(!isPrepare && high<prepareHigh){
-    isPrepare = 0;
+
+void unfold()
+{
+  high = 0;
+  for(int i = 0; i < 10; i++)
+  {
+    high += (bmp.readAltitude(stdPa) - setAlt);
+    delay(3);
   }
-  else if (!isPrepare && high>=prepareHigh){
-    isPrepare = 1;
+
+  high = high / 10;
+
+  if(!isPrepare && high < prepareHigh)
+  {
+    isPrepare = false;
   }
-  else if (isPrepare && high<unfoldHigh){
+
+  else if (!isPrepare && high >= prepareHigh)
+  {
+    isPrepare = true;
+  }
+
+  else if (isPrepare && high < unfoldAlt)
+  {
     servo.attach(7);
     servo.write(unfoldValue);
     delay(100);
     servo.detach();
+  }
+  else
+  {
+    #ifdef DEBUG
+    while(1) Serial.println("unfold() - BUG");
+    #endif
   }
 }
 #endif
@@ -153,12 +177,14 @@ void setup(){
   Serial.println();
   
   //gyro
- #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
         Wire.setClock(400000);
-    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+    
+  #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
         Fastwire::setup(400, true);
-    #endif
+  #endif
+
     while (!Serial);
      devStatus = mpu.dmpInitialize();
      mpu.setXGyroOffset(220);
@@ -174,20 +200,20 @@ void setup(){
     }
     Serial.println("gyro ok");
 
-     //bmp
- if (!bmp.begin()) {
-    Serial.println(F("센서가 인식되지 않습니다. 연결 상태를 확인해주세요."));
+// BMP 센서 초기화 및 최초 고도 설정
+  if (!bmp.begin()) 
+  {
+    Serial.println(F("BMP - FAIL"));
     while (1);
-  } // */
-  Serial.println("bmp ok");
-  setHigh =  bmp.readAltitude(stdPa);
+  }
 
-     //servo
-  /*servo.attach(7);
-  value = 0;
-  servo.write(value);
-  Serial.println("servo ok");
-  delay(100);*/
+  setAlt = 0;
+  for(int i = 0; i < 10; i++)
+  {
+    setAlt += bmp.readAltitude(stdPa);
+  }
+  setAlt = setAlt / 10;
+  Serial.println("BMP - OK");
 
 }
 /*===========================================*/
@@ -196,23 +222,16 @@ void loop()
 {
     t = millis();
     
-//gps
-while (ss.available() > 0)
-    if (gps.encode(ss.read()))
-      gpsData();
-
- /* if (millis() > 5000 && gps.charsProcessed() < 10)
-  {
-    Serial.println(F("No GPS detected: check wiring."));
-    while(true);
-  }*/
+// GPS 센서데이터 읽기
+  while (ss.available() > 0) if (gps.encode(ss.read())) gpsData();
     
-      
-    //bmp
+    
+// BMP 센서 - 온도, 압력, 고도 읽기
   tem = bmp.readTemperature();//온도
   pa = bmp.readPressure(); //압력
+  high = bmp.readAltitude(stdPa) - setAlt;
 
-    //gyro
+// IMU 센서 - YPR 각도 읽기
 if (!dmpReady) return;
 mpuInterrupt = false;
     mpuIntStatus = mpu.getIntStatus();
@@ -258,35 +277,21 @@ mpuInterrupt = false;
             mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
             mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
         #endif
-    
-        #ifdef OUTPUT_TEAPOT
-            teapotPacket[2] = fifoBuffer[0];
-            teapotPacket[3] = fifoBuffer[1];
-            teapotPacket[4] = fifoBuffer[4];
-            teapotPacket[5] = fifoBuffer[5];
-            teapotPacket[6] = fifoBuffer[8];
-            teapotPacket[7] = fifoBuffer[9];
-            teapotPacket[8] = fifoBuffer[12];
-            teapotPacket[9] = fifoBuffer[13];
-            Serial.write(teapotPacket, 14);
-            teapotPacket[11]++; 
-        #endif
 
         mpu.getRotation(&gx,&gy,&gz);
         }
 
 
-//time & fall speed
-    dt = millis()-t;
-    high = bmp.readAltitude(stdPa) - setHigh; //고도 */
-    dH =high - prvHigh;
-    FS= dH/dt;
+// dt 및 낙하속도 계산 
+  dt = millis() - t;
+  dH =high - prvHigh;
+  FS= dH/dt;
 
 
-   prvHigh = bmp.readAltitude(stdPa) - setHigh;
-   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
+// 라즈베리파이로 전송할 데이터
+  cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
        +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','+latData + ',' + lngData;//전송내용 문자열로 변환;
+       +','+latData + ',' + lngData;
   Serial.println(cmd);
 
   #ifdef UNFOLD
