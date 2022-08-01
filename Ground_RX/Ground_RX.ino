@@ -18,7 +18,7 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.println("LABEL,time,cmd,length,pa,high,FallSpeed,angle_y,angle_z,lat,lng,SOS,notice,.,.");
+  Serial.println("LABEL,time,cmd,length,pa,altitude,FallSpeed,angle_y,angle_z,lat,lng,SOS,notice,.,.");
 }
 
 void loop() { // run over and over

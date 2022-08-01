@@ -17,7 +17,7 @@ float setHigh;
 
 #include <Servo.h>
 Servo servo;
-int value = 0;
+int value = 1;
 int unfoldValue = 90;
 String data;
 float unfoldHigh = 10; //낙하산 전개 고도
@@ -44,6 +44,7 @@ void setup() {
   servo.write(value);
   delay(100);
   Serial.println("servo ok");
+  servo.detach();
   delay(100);
 }
 
@@ -56,6 +57,7 @@ void loop() {
     isPrepare = 1;
   }
   else if (isPrepare && high<unfoldHigh){
+    servo.attach(7);
     servo.write(unfoldValue);
     delay(100);
     servo.detach();

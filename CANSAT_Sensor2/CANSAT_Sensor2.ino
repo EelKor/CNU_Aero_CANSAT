@@ -13,12 +13,12 @@
   int 2
 
   servo
-  pwm 12x 
+  pwm 7 
 
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-#define UNFOLD
+//#define UNFOLD
 
 //gps
 #include <TinyGPS++.h>
@@ -108,17 +108,18 @@ float FS = 0;
 
 
 //servo
-#ifdef UNFOLD
+
 #include <Servo.h>
 Servo servo;
-int value = 0;
+int Value = 0;
 int unfoldValue = 90;
 String data;
 float unfoldHigh = 10; //낙하산 전개 고도
 float prepareHigh = 3;
-bool isPrepare = 0;
 bool isUnfolded = 0;
 
+#ifdef UNFOLD
+bool isPrepare = 0;
 void unfold(){
 high = bmp.readAltitude(stdPa) - setHigh;
   if(!isPrepare && high<prepareHigh && !isUnfolded ){
@@ -128,11 +129,21 @@ high = bmp.readAltitude(stdPa) - setHigh;
     isPrepare = 1;
   }
   else if (isPrepare && high<unfoldHigh && !isUnfolded){
-    servo.attach(7);
-    servo.write(unfoldValue);
-    delay(100);
-    servo.detach();
-    isUnfolded = 1;
+  servo.attach(7);
+  servo.writeMicroseconds(1500);
+  delay(1000);
+  servo.detach();
+  isUnfolded = 1;
+  }
+}
+#else
+void unfold(){
+  if(!isUnfolded && high>=7){
+  servo.attach(7);
+  servo.writeMicroseconds(1500);
+  delay(1000);
+  servo.detach();
+  isUnfolded = 1;
   }
 }
 #endif
@@ -183,14 +194,6 @@ void setup(){
   Serial.println("bmp ok");
   setHigh =  bmp.readAltitude(stdPa);
 
-     //servo
-  servo.attach(7);
-  value = 0;
-  servo.write(value);
-  delay(100);
-  Serial.println("servo ok");
-  delay(100);
-  servo.detach();
 }
 /*===========================================*/
 
@@ -288,12 +291,10 @@ mpuInterrupt = false;
    prvHigh = bmp.readAltitude(stdPa) - setHigh;
    cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
        +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','+latData + ',' + lngData;//전송내용 문자열로 변환;
+       +','+latData + ',' + lngData+','+String(servo.read());//전송내용 문자열로 변환;
   Serial.println(cmd);
 
-  #ifdef UNFOLD
   unfold();
-  #endif
   prvHigh = high;
 
 }
