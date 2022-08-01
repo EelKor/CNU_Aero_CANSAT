@@ -98,6 +98,7 @@ float tem ;//온도
 float pa; //압력
 float high ; //고도
 float setHigh;
+const float stdPa = 1013;
 
 
 //time & fall speed
@@ -119,7 +120,7 @@ bool isPrepare = 0;
 
 
 void unfold(){
-high = bmp.readAltitude(1006) - setHigh;
+high = bmp.readAltitude(stdPa) - setHigh;
   if(!isPrepare && high<prepareHigh){
     isPrepare = 0;
   }
@@ -142,7 +143,7 @@ String cmd;
 /*======================================*/
 
 void setup(){
-  Serial.begin(115200);
+  Serial.begin(9600);
   ss.begin(GPSBaud);
   
   Serial.println(F("DeviceExample.ino"));
@@ -151,9 +152,6 @@ void setup(){
   Serial.println(F("by Mikal Hart"));
   Serial.println();
   
-//라즈베리파이 시리얼 통신
-    //  dataSerial.begin(9600);
-    
   //gyro
  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
         Wire.begin();
@@ -182,7 +180,7 @@ void setup(){
     while (1);
   } // */
   Serial.println("bmp ok");
-  setHigh =  bmp.readAltitude(1006);
+  setHigh =  bmp.readAltitude(stdPa);
 
      //servo
   /*servo.attach(7);
@@ -280,21 +278,17 @@ mpuInterrupt = false;
 
 //time & fall speed
     dt = millis()-t;
-    high = bmp.readAltitude(1006) - setHigh; //고도 */
+    high = bmp.readAltitude(stdPa) - setHigh; //고도 */
     dH =high - prvHigh;
     FS= dH/dt;
 
 
-
-  prvHigh = bmp.readAltitude(1006) - setHigh;
-   cmd =String(dt)+','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','
-       +String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
-       +','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','+latData+','+lngData;//전송내용 문자열로 변환;
-  
+   prvHigh = bmp.readAltitude(stdPa) - setHigh;
+   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
+       +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+latData + ',' + lngData;//전송내용 문자열로 변환;
   Serial.println(cmd);
-  
-  
+
   #ifdef UNFOLD
   unfold();
   #endif
