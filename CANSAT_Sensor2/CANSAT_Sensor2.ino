@@ -13,21 +13,22 @@
   int 2
 
   servo
-  pwm 12
+  pwm 12x 
 
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-#define UNFOLD
+//#define UNFOLD
 
 //gps
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
-static const int RXPin = 2, TXPin = 3;
+static const int RXPin = 3, TXPin = 4;
 static const uint32_t GPSBaud = 9600;
 TinyGPSPlus gps;
 SoftwareSerial ss(RXPin, TXPin);
 String latData, lngData;
+
 void gpsData(){
   if (gps.location.isValid())
   {
@@ -141,11 +142,9 @@ String cmd;
 /*======================================*/
 
 void setup(){
-      Serial.begin(9600);
-
-//gps
- Serial.begin(9600);
+  Serial.begin(115200);
   ss.begin(GPSBaud);
+  
   Serial.println(F("DeviceExample.ino"));
   Serial.println(F("A simple demonstration of TinyGPS++ with an attached GPS module"));
   Serial.print(F("Testing TinyGPS++ library v. ")); Serial.println(TinyGPSPlus::libraryVersion());
@@ -160,7 +159,7 @@ void setup(){
         Wire.begin();
         Wire.setClock(400000);
     #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);sa
+        Fastwire::setup(400, true);
     #endif
     while (!Serial);
      devStatus = mpu.dmpInitialize();
