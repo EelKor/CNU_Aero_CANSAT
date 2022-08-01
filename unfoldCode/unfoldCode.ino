@@ -39,11 +39,12 @@ void setup() {
   setHigh =  bmp.readAltitude(1006);
 
      //servo
-  /*servo.attach(7);
+  servo.attach(7);
   value = 0;
   servo.write(value);
+  delay(100);
   Serial.println("servo ok");
-  delay(100);*/
+  delay(100);
 }
 
 void loop() {
@@ -55,7 +56,6 @@ void loop() {
     isPrepare = 1;
   }
   else if (isPrepare && high<unfoldHigh){
-    servo.attach(7);
     servo.write(unfoldValue);
     delay(100);
     servo.detach();

@@ -18,7 +18,7 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-//#define UNFOLD
+#define UNFOLD
 
 //gps
 #include <TinyGPS++.h>
@@ -114,24 +114,25 @@ Servo servo;
 int value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 20; //낙하산 전개 고도
-float prepareHigh = 5;
+float unfoldHigh = 10; //낙하산 전개 고도
+float prepareHigh = 3;
 bool isPrepare = 0;
-
+bool isUnfolded = 0;
 
 void unfold(){
 high = bmp.readAltitude(stdPa) - setHigh;
-  if(!isPrepare && high<prepareHigh){
+  if(!isPrepare && high<prepareHigh && !isUnfolded ){
     isPrepare = 0;
   }
-  else if (!isPrepare && high>=prepareHigh){
+  else if (!isPrepare && high>=prepareHigh && !isUnfolded){
     isPrepare = 1;
   }
-  else if (isPrepare && high<unfoldHigh){
+  else if (isPrepare && high<unfoldHigh && !isUnfolded){
     servo.attach(7);
     servo.write(unfoldValue);
     delay(100);
     servo.detach();
+    isUnfolded = 1;
   }
 }
 #endif
@@ -183,12 +184,13 @@ void setup(){
   setHigh =  bmp.readAltitude(stdPa);
 
      //servo
-  /*servo.attach(7);
+  servo.attach(7);
   value = 0;
   servo.write(value);
+  delay(100);
   Serial.println("servo ok");
-  delay(100);*/
-
+  delay(100);
+  servo.detach();
 }
 /*===========================================*/
 
