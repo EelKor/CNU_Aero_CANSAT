@@ -102,10 +102,10 @@ Adafruit_BMP280 bmp(CSB, SDA, SDO, SCL);
 const float stdPa = 1013;
 float tem;//온도
 float pa; //압력
-float alt; //고도
+float altitude; //고도
 float setAlt;
 unsigned long t, dt=0;
-float dH=0, prvHigh = 0;
+float dH=0, prvAlt = 0;
 float FS = 0;
 
 
@@ -119,32 +119,31 @@ const float unfoldAlt = 20; //낙하산 전개 고도
 const float prepareAlt = 5;
 String data;
 bool isPrepare = 0;
-unsigned char 
 
 
 
 void unfold()
 {
-  high = 0;
+  altitude = 0;
   for(int i = 0; i < 10; i++)
   {
-    high += (bmp.readAltitude(stdPa) - setAlt);
+    altitude += (bmp.readAltitude(stdPa) - setAlt);
     delay(3);
   }
 
-  high = high / 10;
+  altitude = altitude / 10;
 
-  if(!isPrepare && high < prepareHigh)
+  if(!isPrepare && altitude < prepareAlt)
   {
     isPrepare = false;
   }
 
-  else if (!isPrepare && high >= prepareHigh)
+  else if (!isPrepare && altitude >= prepareAlt)
   {
     isPrepare = true;
   }
 
-  else if (isPrepare && high < unfoldAlt)
+  else if (isPrepare && altitude < unfoldAlt)
   {
     servo.attach(7);
     servo.write(unfoldValue);
@@ -229,7 +228,7 @@ void loop()
 // BMP 센서 - 온도, 압력, 고도 읽기
   tem = bmp.readTemperature();//온도
   pa = bmp.readPressure(); //압력
-  high = bmp.readAltitude(stdPa) - setAlt;
+  altitude = bmp.readAltitude(stdPa) - setAlt;
 
 // IMU 센서 - YPR 각도 읽기
 if (!dmpReady) return;
@@ -284,19 +283,19 @@ mpuInterrupt = false;
 
 // dt 및 낙하속도 계산 
   dt = millis() - t;
-  dH =high - prvHigh;
+  dH =altitude - prvAlt;
   FS= dH/dt;
 
 
 // 라즈베리파이로 전송할 데이터
   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
-       +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+String(pa)+','+String(altitude)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
        +','+latData + ',' + lngData;
   Serial.println(cmd);
 
   #ifdef UNFOLD
   unfold();
   #endif
-  prvHigh = high;
+  prvAlt = altitude;
 
 }
