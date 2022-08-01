@@ -18,28 +18,38 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
   */
 
-#define V1_BOARD
-//#define V2_BOARD
-#define LORA
+#define UNFOLD
+
+//gps
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+static const int RXPin = 2, TXPin = 3;
+static const uint32_t GPSBaud = 9600;
+TinyGPSPlus gps;
+SoftwareSerial ss(RXPin, TXPin);
+String latData, lngData;
+void gpsData(){
+  if (gps.location.isValid())
+  {
+   /* Serial.print(gps.location.lat(), 6);
+    Serial.print(F(","));
+    Serial.print(gps.location.lng(), 6);*/
+    latData = String(gps.location.lat(),6);
+    lngData = String(gps.location.lng(),6);
+  }
+  else
+  {
+    latData = "null";
+    lngData = "null";
+    /*Serial.print(F("INVALID"));*/
+  }
+}
 
 //bmp id 0x58
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
-
-
-#include <SoftwareSerial.h>
-//gps
-#ifdef V1_BOARD
-SoftwareSerial GPS(2,3);
-#endif
-#ifdef V2_BOARD
-SoftwareSerial GPS(3,4);
-#endif  
-byte buff[100];
-  String lat; double lat_dd;
-  String lng; double lng_dd;
 
 //gyro
 #include "I2Cdev.h"
@@ -96,27 +106,36 @@ float FS = 0;
 
 
 //servo
+#ifdef UNFOLD
 #include <Servo.h>
 Servo servo;
 int value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 300; //낙하산 전개 고도
+float unfoldHigh = 20; //낙하산 전개 고도
+float prepareHigh = 5;
+bool isPrepare = 0;
+
 
 void unfold(){
-  if (high<= unfoldHigh){
+high = bmp.readAltitude(1006) - setHigh;
+  if(!isPrepare && high<prepareHigh){
+    isPrepare = 0;
+  }
+  else if (!isPrepare && high>=prepareHigh){
+    isPrepare = 1;
+  }
+  else if (isPrepare && high<unfoldHigh){
+    servo.attach(7);
     servo.write(unfoldValue);
+    delay(100);
+    servo.detach();
   }
 }
+#endif
 
 //라즈베리파이 시리얼 통신
 String cmd;
-
-//lora
-#ifdef LORA
-SoftwareSerial lora(6,5);
-#endif
-
 
 
 /*======================================*/
@@ -125,13 +144,13 @@ void setup(){
       Serial.begin(9600);
 
 //gps
- GPS.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-  Serial.println("Goodnight moon!");
-
-
+ Serial.begin(9600);
+  ss.begin(GPSBaud);
+  Serial.println(F("DeviceExample.ino"));
+  Serial.println(F("A simple demonstration of TinyGPS++ with an attached GPS module"));
+  Serial.print(F("Testing TinyGPS++ library v. ")); Serial.println(TinyGPSPlus::libraryVersion());
+  Serial.println(F("by Mikal Hart"));
+  Serial.println();
   
 //라즈베리파이 시리얼 통신
     //  dataSerial.begin(9600);
@@ -173,82 +192,28 @@ void setup(){
   Serial.println("servo ok");
   delay(100);*/
 
-  //lora
-  #ifdef LORA
-  lora.begin(9600);
-  lora.println("AT+PARAMETER=10,7,1,7");
-  delay(100);
-  lora.println("AT+IPR=9600"); //로라 속도
-  delay(100);
-  lora.println("AT+ADDRESS=75"); //로라 주소 지정
-  delay(100);
-  lora.println("AT+NETWORKID=2"); //네트워크 아이디
-  delay(100);
-  Serial.println("lora setup end");
-  #endif
-
 }
-
 /*===========================================*/
 
 void loop()
 {
     t = millis();
-
-
+    
 //gps
- if (GPS.available()) {
-    GPS.readBytesUntil('\n',buff,100);
-    String msg = buff;
-    if(msg.substring(0,6).equals("$GNGGA") || msg.substring(0,6).equals("$GPGGA"))
-    {
-     
-     int index = msg.indexOf(",");// 첫 번째 콤마 위치
-     int index2= msg.indexOf(",",index+1); 
-     int index3 = msg.indexOf(",",index2+1); 
-     int index4 = msg.indexOf(",",index3+1); 
-     int index5 = msg.indexOf(",",index4+1);
-     int index6 = msg.indexOf(",",index5+1);  
-     String positionFix = msg.substring(index6+1,index6+2);
-      if (index6<43){positionFix = "0";}
-     //Serial.println(positionFix);
-     
-     if(positionFix != "0"){   
-      lat = msg.substring(17,29);
-      lng = msg.substring(30,43);
-      
-    /* int d_index_lat = lat.indexOf(".");
-     int d_index_lng = lng.indexOf(".");
-     
-     String d_lat = lat.substring(0, d_index_lat-2);
-     String d_lng = lng.substring(0, d_index_lng-2);
+while (ss.available() > 0)
+    if (gps.encode(ss.read()))
+      gpsData();
 
-     String m_lat = lat.substring(d_index_lat-2,lat.length()-2);
-     String m_lng = lng.substring(d_index_lng-2,lng.length()-2);
-     
-     double d_lat_double = d_lat.toDouble();
-     double d_lng_double = d_lng.toDouble();
-
-     double m_lat_double = m_lat.toDouble();
-     double m_lng_double = m_lng.toDouble();
-
-     lat_dd = d_lat_int + m_lat_double/60;
-     lng_dd = d_lng_int + m_lng_double/60;*/
-     }
-
-     else{
-     // lat_dd = 0; lng_dd = 0;
-      lat = '0'; lng = '0';
-    }
- }
- /* else{//lat_dd = 377; lng_dd = 377;
-       lat = "377"; lng = "377";}*/
+ /* if (millis() > 5000 && gps.charsProcessed() < 10)
+  {
+    Serial.println(F("No GPS detected: check wiring."));
+    while(true);
+  }*/
+    
       
     //bmp
-
   tem = bmp.readTemperature();//온도
   pa = bmp.readPressure(); //압력
-  
 
     //gyro
 if (!dmpReady) return;
@@ -320,32 +285,20 @@ mpuInterrupt = false;
     dH =high - prvHigh;
     FS= dH/dt;
 
+
+
   prvHigh = bmp.readAltitude(1006) - setHigh;
    cmd =String(dt)+','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','
        +String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
        +','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','+String(lat)+','+String(lng);//전송내용 문자열로 변환;
+       +','+latData+','+lngData;//전송내용 문자열로 변환;
+  
   Serial.println(cmd);
-
+  
+  
+  #ifdef UNFOLD
   unfold();
+  #endif
   prvHigh = high;
 
-  //lora
-#ifdef LORA
-  String inString;
-   while(lora.available())
-  {
-    if(lora.available())
-    {
-     inString = String(lora.readStringUntil('\n'));
-     //lora.flush();
-    }
-  }
-
-  if(inString.length() > 0)
-  {
-    Serial.println(inString);
-  }
-#endif
-}
 }
