@@ -19,6 +19,7 @@
   */
 
 //#define UNFOLD
+#define FALLSTACK
 
 //gps
 #include <TinyGPS++.h>
@@ -105,6 +106,7 @@ const float stdPa = 1013;
 unsigned long t, dt=0;
 float dH=0, prvHigh = 0;
 float FS = 0;
+int fallStack = 0;
 
 
 //servo
@@ -121,14 +123,13 @@ bool isUnfolded = 0;
 #ifdef UNFOLD
 bool isPrepare = 0;
 void unfold(){
-high = bmp.readAltitude(stdPa) - setHigh;
   if(!isPrepare && high<prepareHigh && !isUnfolded ){
     isPrepare = 0;
   }
   else if (!isPrepare && high>=prepareHigh && !isUnfolded){
     isPrepare = 1;
   }
-  else if (isPrepare && high<unfoldHigh && !isUnfolded){
+  else if (isPrepare && high<unfoldHigh && !isUnfolded && fallStack >10){
   servo.attach(7);
   servo.writeMicroseconds(1500);
   delay(1000);
@@ -285,7 +286,18 @@ mpuInterrupt = false;
     dt = millis()-t;
     high = bmp.readAltitude(stdPa) - setHigh; //고도 */
     dH =high - prvHigh;
+    #ifdef FALLSTACK
+    while(fallStack<15){
+    if (dH<0){
+      fallStack++;
+     }
+    else{
+      fallStack--;
+    }
+    }
+    #endif
     FS= dH/dt;
+    
 
 
    prvHigh = bmp.readAltitude(stdPa) - setHigh;

@@ -18,12 +18,12 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.println("LABEL,time,cmd,length,pa,altitude,FallSpeed,angle_y,angle_z,lat,lng,SOS,notice,.,.");
+  Serial.println("LABEL,date,time,cmd,length,pa,altitude,FallSpeed,pitch,roll,lat,lng,SOS,notice,.,.");
 }
 
 void loop() { // run over and over
   if (lora.available()) {
-    String instring = "DATA,TIME,"+ String(lora.readStringUntil('\n'));
+    String instring = "DATA,DATE,TIME,"+ String(lora.readStringUntil('\n'));
     Serial.println(instring);
   }
 }
