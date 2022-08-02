@@ -19,8 +19,6 @@
   주기 낙하속도 온도 기압 고도 x y z 위도 경도
 */
 
-
-
 /**************** 디버그 모드 ***********************/
 //#define UNFOLD
 #define FALLSTACK
@@ -308,7 +306,7 @@ void loop()
 
   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
        +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
-       +','+latData + ',' + lngData+','+String(servo.read());//전송내용 문자열로 변환;
+       +','+latData + ',' + lngData; //전송내용 문자열로 변환;
   Serial.println(cmd);
 
   unfold();
