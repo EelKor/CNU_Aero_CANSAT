@@ -20,7 +20,7 @@
 */
 
 /**************** 디버그 모드 ***********************/
-//#define UNFOLD
+#define UNFOLD
 //#define DEBUG
 
 /***************************************************/
@@ -120,31 +120,35 @@ Servo servo;
 int Value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 10; // 낙하산 전개 고도
-float prepareHigh = 3;
+float unfoldHigh = 7; // 낙하산 전개 고도
+float prepareHigh =10;
 bool isUnfolded = 0;
 
 #ifdef UNFOLD
 bool isPrepare = 0;
 void unfold()
 {
-  if(!isPrepare && high<prepareHigh && !isUnfolded ){
+  if(!isPrepare && high<prepareHigh && !isUnfolded )
+  {
     isPrepare = 0;
   }
-  else if (!isPrepare && high>=prepareHigh && !isUnfolded){
+  else if (!isPrepare && high>=prepareHigh && !isUnfolded)
+  {
     isPrepare = 1;
-    while(fallStack < 15 && isPrepare)
-    {
-      if (dH < 0) fallStack++;
-      else  fallStack--;
-    }
   }
-  else if (isPrepare && high<unfoldHigh && !isUnfolded && fallStack >10){
-  servo.attach(7);
-  servo.writeMicroseconds(1500);
-  delay(1000);
-  servo.detach();
-  isUnfolded = 1;
+  else if (isPrepare && high<unfoldHigh && !isUnfolded)
+  {
+    if (dH < 0) fallStack++;
+    else  fallStack--;
+
+    if(fallStack >15)
+    {
+      servo.attach(7);
+      servo.writeMicroseconds(1500);
+      delay(1000);
+      servo.detach();
+      isUnfolded = 1;
+    }
   }
 }
 #else
@@ -293,15 +297,20 @@ void loop()
   }
 
 
-//time & fall speed
+// time & fall speed
   dt = millis()-t;
-  high = bmp.readAltitude(stdPa) - setHigh; //고도 */
+  float sumHigh=0;
+  for(i=0; i<3; i++)
+  {
+    sumHigh += bmp.readAltitude(stdPa) - setHigh; //고도 */
+    delay(10);
+  }
+  high = sumHigh/3;
   dH =high - prvHigh;
 
 
   FS= dH/dt;
-  prvHigh = bmp.readAltitude(stdPa) - setHigh;
-
+  prvHigh = high;
   gpsAltitude = gps.altitude.meters();
 
 
