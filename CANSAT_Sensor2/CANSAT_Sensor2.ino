@@ -300,7 +300,7 @@ void loop()
 // time & fall speed
   dt = millis()-t;
   float sumHigh=0;
-  for(i=0; i<3; i++)
+  for(int i=0; i<3; i++)
   {
     sumHigh += bmp.readAltitude(stdPa) - setHigh; //고도 */
     delay(10);
@@ -311,7 +311,7 @@ void loop()
 
   FS= dH/dt;
   prvHigh = high;
-  gpsAltitude = gps.altitude.meters();
+   while (ss.available() > 0) if (gps.encode(ss.read())) gpsAltitude = gps.altitude.meters();
 
 
   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
