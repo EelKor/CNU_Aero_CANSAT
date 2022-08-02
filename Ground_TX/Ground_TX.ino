@@ -12,7 +12,7 @@ void setup() {
     delay(100);
     lora.println("AT+NETWORKID=2");
     delay(100);
-    lora.println("AT+BAND=815000000");
+    lora.println("AT+BAND=930000000");
     delay(100);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
