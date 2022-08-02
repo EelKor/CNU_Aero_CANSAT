@@ -21,7 +21,6 @@
 
 /**************** 디버그 모드 ***********************/
 //#define UNFOLD
-#define FALLSTACK
 //#define DEBUG
 
 /***************************************************/
@@ -52,6 +51,8 @@ void gpsData()
     lngData = "null";
   }
 }
+
+float gpsAltitude;
 
 // bmp id 0x58
 #include <SPI.h>
@@ -132,6 +133,11 @@ void unfold()
   }
   else if (!isPrepare && high>=prepareHigh && !isUnfolded){
     isPrepare = 1;
+    while(fallStack < 15 && isPrepare)
+    {
+      if (dH < 0) fallStack++;
+      else  fallStack--;
+    }
   }
   else if (isPrepare && high<unfoldHigh && !isUnfolded && fallStack >10){
   servo.attach(7);
@@ -292,20 +298,15 @@ void loop()
   high = bmp.readAltitude(stdPa) - setHigh; //고도 */
   dH =high - prvHigh;
 
-  #ifdef FALLSTACK
-    while(fallStack < 15)
-    {
-      if (dH < 0) fallStack++;
-      else  fallStack--;
-    }
-  #endif
 
   FS= dH/dt;
   prvHigh = bmp.readAltitude(stdPa) - setHigh;
 
+  gpsAltitude = gps.altitude.meters();
+
 
   cmd =String(dt)+','+String(aaReal.x)+','+String(aaReal.y)+','+String(aaReal.z)+','+String(gx)+','+String(gy)+','+String(gz)
-       +','+String(pa)+','+String(high)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
+       +','+String(pa)+','+String(high)+','+String(gpsAltitude)+','+String(tem)+','+String(FS)+','+String(ypr[1] * 180/M_PI)+','+String(ypr[2] * 180/M_PI)
        +','+latData + ',' + lngData; //전송내용 문자열로 변환;
   Serial.println(cmd);
 
