@@ -31,7 +31,7 @@ if (lora.available()) {
   }
   if (Serial.available()) {
     String instring = String(Serial.readStringUntil('\n'));
-    lora.println("AT+SEND=75,"+String(instring.length())+','+instring);
-    Serial.println("AT+SEND=75,"+String(instring.length())+','+instring);
+    lora.println("AT+SEND=75,"+String(instring.length()+1)+','+instring+' ');
+    Serial.println("AT+SEND=75,"+String(instring.length()+1)+','+instring);
   }
 }
