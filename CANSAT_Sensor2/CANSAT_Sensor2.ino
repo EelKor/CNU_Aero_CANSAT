@@ -120,8 +120,8 @@ Servo servo;
 int Value = 0;
 int unfoldValue = 90;
 String data;
-float unfoldHigh = 7; // 낙하산 전개 고도
-float prepareHigh =10;
+float unfoldHigh = 150; // 낙하산 전개 고도
+float prepareHigh =250;
 bool isUnfolded = 0;
 
 #ifdef UNFOLD
