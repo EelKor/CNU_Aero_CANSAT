@@ -1,0 +1,25 @@
+<?php
+	$servername = "localhost";
+	$user = "choi";
+	$password = "0000";
+
+	$connect = mysqli_connect($servername, $user,$password);
+	if(!$connect)	{
+		die("서버 연결 실패 " .mysqli_connect_error());
+	}
+	echo "서버 연결 성공"
+
+?>
+
+
+
+<html>
+<head>
+	<title> WeCANSET </title>
+</head>
+
+<body>
+	<h1> Submitted </h1>
+</body>
+</html>
+
